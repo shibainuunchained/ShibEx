@@ -2,11 +2,8 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { InsertPosition, insertPositionSchema } from "../shared/schema";
-import { MarketDataAPI } from "./market-api";
-import { Storage } from "./storage";
-
-const storage = new Storage();
-const marketAPI = new MarketDataAPI();
+import { marketAPI } from "./market-api";
+import { storage } from "./storage";
 
 export function setupRoutes(app: Express) {
   console.log("Setting up routes...");

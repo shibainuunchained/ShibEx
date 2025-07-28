@@ -3,7 +3,7 @@ services:
     name: shibau-trading-platform
     env: node
     plan: free
-    buildCommand: NODE_ENV=production npm ci && npm run build:production
+    buildCommand: ./build.sh
     startCommand: npm start
     envVars:
       - key: NODE_ENV

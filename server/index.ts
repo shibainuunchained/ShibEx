@@ -15,16 +15,6 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('🚨 UNHANDLED REJECTION at:', promise, 'reason:', reason);
 });
 
-// Basic health check endpoint FIRST (before other middleware)
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    port: process.env.PORT 
-  });
-});
-
 // Minimal middleware setup
 app.use((req: any, res: any, next: any) => {
   res.json = function (bodyJson: any, ...args: any[]) {
@@ -36,17 +26,23 @@ app.use((req: any, res: any, next: any) => {
 app.use(express.json());
 app.use(express.static("dist"));
 
-// Setup routes and Vite with error handling
+// Setup routes FIRST (this includes /api/health)
 try {
-  console.log('Setting up routes...');
+  console.log('🔧 Setting up routes...');
   setupRoutes(app);
   console.log('✅ Routes setup complete');
-  
-  console.log('Setting up Vite...');
+} catch (error) {
+  console.error('💥 Routes setup error:', error);
+  console.error('Stack:', error?.stack);
+}
+
+// Setup Vite AFTER routes
+try {
+  console.log('🔧 Setting up Vite...');
   setupVite(app);
   console.log('✅ Vite setup complete');
 } catch (error) {
-  console.error('💥 Setup error:', error);
+  console.error('💥 Vite setup error:', error);
   console.error('Stack:', error?.stack);
 }
 
@@ -62,7 +58,7 @@ console.log('📁 NODE_ENV:', process.env.NODE_ENV);
 
 const server = app.listen(port, host, () => {
   log(`✅ Server running on http://${host}:${port}`);
-  console.log('🎯 Health check available at: /health');
+  console.log('🎯 Health check available at: /api/health');
   console.log('🛠️ API routes available at: /api/*');
 });
 

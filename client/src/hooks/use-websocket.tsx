@@ -7,11 +7,11 @@ interface MarketData {
   volume24h?: string;
 }
 
-// Shared price state across the app - updated to current market prices
+// Shared price state across the app - updated to CURRENT market prices
 let sharedBasePrices = {
-  'BTC/USD': 98234.56,     // More current BTC price 
-  'ETH/USD': 3421.89,      // More current ETH price
-  'SHIBA/USD': 0.00002298  // More current SHIBA price
+  'BTC/USD': 104565.00,     // Current real BTC price from CoinCodex
+  'ETH/USD': 3772.26,       // Current real ETH price 
+  'SHIBA/USD': 0.00002298   // Current SHIBA price
 };
 
 // Export function to get current prices for other components
@@ -29,15 +29,14 @@ export function useWebSocket() {
 
   // Generate realistic price movements
   const generateRealisticPrice = (symbol: string, basePrice: number) => {
-    const volatility = symbol.includes('BTC') ? 0.0001 : 
-                      symbol.includes('ETH') ? 0.0002 : 0.005; // Much reduced volatility for closer sync
+    const volatility = symbol.includes('BTC') ? 0.00005 :   // Extremely reduced volatility for BTC
+                      symbol.includes('ETH') ? 0.0001 : 0.003; // Very small movements for close sync
     
-    const change = (Math.random() - 0.5) * volatility * 2;
+    const change = (Math.random() - 0.5) * volatility;
     const newPrice = basePrice * (1 + change);
     
-    // Update both local and shared base prices
-    basePricesRef.current[symbol as keyof typeof basePricesRef.current] = newPrice;
-    sharedBasePrices[symbol as keyof typeof sharedBasePrices] = newPrice;
+    // Update the base price gradually
+    sharedBasePrices[symbol] = newPrice;
     
     return newPrice;
   };

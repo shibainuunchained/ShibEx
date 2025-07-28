@@ -40,12 +40,36 @@ export function setupRoutes(app: Express) {
 
   app.post("/api/positions", async (req: any, res: any) => {
     try {
+      console.log("Creating position with data:", req.body);
       const position = insertPositionSchema.parse(req.body);
       const newPosition = await storage.createPosition(position);
+      console.log("Position created successfully:", newPosition);
       res.json(newPosition);
     } catch (error) {
       console.error("Create position error:", error);
-      res.status(400).json({ error: "Failed to create position" });
+      res.status(400).json({ error: "Failed to create position", details: error });
+    }
+  });
+
+  // Orders
+  app.get("/api/orders/:userId", async (req: any, res: any) => {
+    try {
+      const orders = await storage.getOrders(req.params.userId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Get orders error:", error);
+      res.status(500).json({ error: "Failed to get orders" });
+    }
+  });
+
+  // Trades  
+  app.get("/api/trades/:userId", async (req: any, res: any) => {
+    try {
+      const trades = await storage.getTrades(req.params.userId);
+      res.json(trades);
+    } catch (error) {
+      console.error("Get trades error:", error);
+      res.status(500).json({ error: "Failed to get trades" });
     }
   });
 

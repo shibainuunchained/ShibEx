@@ -16,26 +16,74 @@ export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fallbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const priceUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fallback to CoinGecko API when WebSocket fails
-  const fetchCoinGeckoData = async () => {
+  // Fetch live prices from CoinGecko API (free tier, reliable)
+  const fetchLivePrices = async () => {
+    try {
+      // Use CoinGecko's simple price API (free tier, no auth required)
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,shiba-inu&vs_currencies=usd&include_24hr_change=true',
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        const updatedData: MarketData[] = [
+          {
+            symbol: "BTC/USD",
+            price: data.bitcoin?.usd?.toString() || "67235.42",
+            change24h: data.bitcoin?.usd_24h_change?.toFixed(2) || "2.34"
+          },
+          {
+            symbol: "ETH/USD", 
+            price: data.ethereum?.usd?.toString() || "3567.89",
+            change24h: data.ethereum?.usd_24h_change?.toFixed(2) || "-1.23"
+          },
+          {
+            symbol: "SHIBA/USD",
+            price: data['shiba-inu']?.usd?.toFixed(8) || "0.000022",
+            change24h: data['shiba-inu']?.usd_24h_change?.toFixed(2) || "5.67"
+          }
+        ];
+
+        setMarketData(updatedData);
+        setIsConnected(true);
+        console.log('✅ Live prices updated successfully');
+        return true;
+      }
+    } catch (error) {
+      console.log('❌ CoinGecko API failed:', error);
+    }
+
+    // Fallback: Try our backend API
     try {
       const response = await fetch('/api/market-data');
       if (response.ok) {
         const data = await response.json();
         if (data && data.length > 0) {
           setMarketData(data);
+          setIsConnected(true);
+          console.log('✅ Backend API prices updated');
           return true;
         }
       }
     } catch (error) {
-      console.log('Fallback API failed, using static data');
+      console.log('❌ Backend API failed:', error);
     }
+
+    console.log('⚠️ Using cached/default prices');
+    setIsConnected(false);
     return false;
   };
 
-  // Initialize WebSocket connection with better error handling
+  // Try WebSocket connection (if available)
   const connectWebSocket = () => {
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -44,7 +92,7 @@ export function useWebSocket() {
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
+        console.log('🔌 WebSocket connected');
         setIsConnected(true);
         
         // Clear any pending reconnection
@@ -59,6 +107,7 @@ export function useWebSocket() {
           const data = JSON.parse(event.data);
           if (data.type === 'market-data' && data.data) {
             setMarketData(data.data);
+            console.log('📡 WebSocket prices updated');
           }
         } catch (error) {
           console.log('Error parsing WebSocket message:', error);
@@ -66,45 +115,62 @@ export function useWebSocket() {
       };
 
       wsRef.current.onclose = () => {
-        console.log('WebSocket disconnected');
+        console.log('🔌 WebSocket disconnected - switching to HTTP polling');
         setIsConnected(false);
         
-        // Start fallback mechanism
-        if (!fallbackIntervalRef.current) {
-          fallbackIntervalRef.current = setInterval(fetchCoinGeckoData, 10000);
+        // Switch to HTTP polling when WebSocket fails
+        if (!priceUpdateIntervalRef.current) {
+          startPricePolling();
         }
         
-        // Attempt to reconnect after 5 seconds
+        // Try to reconnect WebSocket after 30 seconds
         if (!reconnectTimeoutRef.current) {
           reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
-          }, 5000);
+          }, 30000);
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.log('WebSocket error:', error);
+        console.log('🔌 WebSocket error - switching to HTTP polling');
         setIsConnected(false);
       };
 
     } catch (error) {
-      console.log('Failed to create WebSocket connection:', error);
+      console.log('Failed to create WebSocket - using HTTP polling');
       setIsConnected(false);
-      
-      // Use fallback immediately if WebSocket creation fails
-      fetchCoinGeckoData();
-      if (!fallbackIntervalRef.current) {
-        fallbackIntervalRef.current = setInterval(fetchCoinGeckoData, 10000);
-      }
+      startPricePolling();
     }
   };
 
+  // Start HTTP polling for price updates
+  const startPricePolling = () => {
+    if (priceUpdateIntervalRef.current) return;
+    
+    console.log('🔄 Starting HTTP price polling (every 10 seconds)');
+    
+    // Immediate fetch
+    fetchLivePrices();
+    
+    // Set up polling interval
+    priceUpdateIntervalRef.current = setInterval(() => {
+      fetchLivePrices();
+    }, 10000); // Update every 10 seconds
+  };
+
   useEffect(() => {
-    // Try WebSocket first
+    // Start with immediate price fetch
+    fetchLivePrices();
+    
+    // Try WebSocket connection
     connectWebSocket();
     
-    // Also start with a fallback fetch
-    fetchCoinGeckoData();
+    // Start HTTP polling as backup
+    const pollingTimeout = setTimeout(() => {
+      if (!isConnected) {
+        startPricePolling();
+      }
+    }, 5000);
 
     return () => {
       if (wsRef.current) {
@@ -113,9 +179,10 @@ export function useWebSocket() {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
-      if (fallbackIntervalRef.current) {
-        clearInterval(fallbackIntervalRef.current);
+      if (priceUpdateIntervalRef.current) {
+        clearInterval(priceUpdateIntervalRef.current);
       }
+      clearTimeout(pollingTimeout);
     };
   }, []);
 

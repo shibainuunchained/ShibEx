@@ -20,12 +20,18 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState("1h");
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const timeframes = ["15s", "30s", "1m", "5m", "15m", "1h", "4h", "1D"];
 
   // Fetch real chart data from API
-  const fetchChartData = async (timeframe: string) => {
-    setIsLoading(true);
+  const fetchChartData = async (timeframe: string, isBackgroundRefresh = false) => {
+    if (!isBackgroundRefresh) {
+      setInitialLoad(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    
     try {
       const response = await fetch(`/api/chart/${encodeURIComponent(symbol)}/${timeframe}`, {
         method: 'GET',
@@ -49,7 +55,8 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
       console.log('Chart API error, using fallback data:', error);
       generateFallbackData();
     } finally {
-      setIsLoading(false);
+      setInitialLoad(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -93,21 +100,17 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
 
   // Fetch data when symbol or timeframe changes
   useEffect(() => {
-    fetchChartData(selectedTimeframe);
+    fetchChartData(selectedTimeframe, false);
   }, [symbol, selectedTimeframe]);
 
-  // Auto-refresh chart data every 1 second for real-time updates
+  // Auto-refresh chart data every 5 seconds for real-time updates
   useEffect(() => {
-    const getRefreshInterval = () => {
-      return 1000; // 1 second for all timeframes for super dynamic updates
-    };
-
     const interval = setInterval(() => {
-      fetchChartData(selectedTimeframe);
-    }, getRefreshInterval());
+      fetchChartData(selectedTimeframe, true);
+    }, 5000); // 5 second refresh rate
 
     return () => clearInterval(interval);
-  }, [selectedTimeframe]);
+  }, [selectedTimeframe, symbol]);
 
   // Update chart when price changes (real-time updates)
   useEffect(() => {
@@ -150,30 +153,40 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
 
     if (chartData.length === 0) return;
 
-    // Calculate price range
-    const minPrice = Math.min(...chartData.map(c => c.low));
-    const maxPrice = Math.max(...chartData.map(c => c.high));
-    const priceRange = maxPrice - minPrice;
+    // Calculate price range with better padding
+    const allPrices = chartData.flatMap(c => [c.low, c.high, c.open, c.close]);
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    const baseRange = maxPrice - minPrice;
+    
+    // Add smart padding based on price volatility (minimum 0.5% padding, maximum 5%)
+    const volatility = baseRange / ((minPrice + maxPrice) / 2);
+    const paddingPercent = Math.max(0.005, Math.min(0.05, volatility * 0.1));
+    const padding = baseRange * paddingPercent;
+    
+    const paddedMinPrice = minPrice - padding;
+    const paddedMaxPrice = maxPrice + padding;
+    const priceRange = paddedMaxPrice - paddedMinPrice;
 
     if (priceRange === 0) return;
 
     // Draw candlesticks
-    const candleWidth = (rect.width / chartData.length) * 0.7;
+    const candleWidth = Math.max(2, (rect.width / chartData.length) * 0.7);
     const spacing = rect.width / chartData.length;
 
     chartData.forEach((candle, index) => {
       const x = index * spacing + spacing / 2;
-      const openY = rect.height - ((candle.open - minPrice) / priceRange) * rect.height * 0.9;
-      const closeY = rect.height - ((candle.close - minPrice) / priceRange) * rect.height * 0.9;
-      const highY = rect.height - ((candle.high - minPrice) / priceRange) * rect.height * 0.9;
-      const lowY = rect.height - ((candle.low - minPrice) / priceRange) * rect.height * 0.9;
+      const openY = rect.height - ((candle.open - paddedMinPrice) / priceRange) * rect.height * 0.9;
+      const closeY = rect.height - ((candle.close - paddedMinPrice) / priceRange) * rect.height * 0.9;
+      const highY = rect.height - ((candle.high - paddedMinPrice) / priceRange) * rect.height * 0.9;
+      const lowY = rect.height - ((candle.low - paddedMinPrice) / priceRange) * rect.height * 0.9;
 
       const isGreen = candle.close > candle.open;
       const color = isGreen ? "#00D4AA" : "#FF4747";
 
       // Draw wick
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = Math.max(1, candleWidth * 0.1);
       ctx.beginPath();
       ctx.moveTo(x, highY);
       ctx.lineTo(x, lowY);
@@ -205,15 +218,26 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
 
     ctx.setLineDash([]);
 
-    // Draw price labels
+    // Draw price labels with better formatting
     ctx.fillStyle = "#9CA3AF";
-    ctx.font = "12px Arial";
+    ctx.font = "11px Arial";
     ctx.textAlign = "right";
 
     for (let i = 0; i <= 4; i++) {
-      const priceLevel = minPrice + (priceRange * i / 4);
+      const priceLevel = paddedMinPrice + (priceRange * i / 4);
       const y = rect.height - (i / 4 * rect.height * 0.9) - 5;
-      ctx.fillText(priceLevel.toFixed(2), rect.width - 10, y);
+      
+      // Format price based on value range
+      let formattedPrice;
+      if (priceLevel < 1) {
+        formattedPrice = priceLevel.toFixed(6);
+      } else if (priceLevel < 100) {
+        formattedPrice = priceLevel.toFixed(4);
+      } else {
+        formattedPrice = priceLevel.toFixed(2);
+      }
+      
+      ctx.fillText(formattedPrice, rect.width - 10, y);
     }
 
   }, [chartData]);
@@ -235,7 +259,7 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
                 size="sm"
                 className="h-8 px-3 text-xs"
                 onClick={() => handleTimeframeChange(tf)}
-                disabled={isLoading}
+                disabled={initialLoad}
               >
                 {tf}
               </Button>
@@ -243,10 +267,13 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {isLoading && (
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+          {isRefreshing && (
+            <div className="flex items-center space-x-1">
+              <div className="animate-spin rounded-full h-3 w-3 border-2 border-primary border-t-transparent"></div>
+              <span className="text-xs text-shiba-text-muted">Updating...</span>
+            </div>
           )}
-          <Button variant="ghost" size="sm" onClick={() => fetchChartData(selectedTimeframe)}>
+          <Button variant="ghost" size="sm" onClick={() => fetchChartData(selectedTimeframe, false)}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -260,9 +287,12 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
           className="w-full h-full"
           style={{ display: 'block' }}
         />
-        {chartData.length === 0 && !isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center text-shiba-text-muted">
-            No chart data available
+        {chartData.length === 0 && initialLoad && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+              <span className="text-sm text-shiba-text-muted">Loading chart data...</span>
+            </div>
           </div>
         )}
       </div>

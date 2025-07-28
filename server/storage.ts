@@ -99,7 +99,7 @@ export class MemoryStorage implements IStorage {
       createdAt: new Date(),
       referralCode: null,
       referredBy: null,
-      balance: { BTC: 0.1, ETH: 2.5, USDC: 10000, SHIBA: 1000000 },
+      balance: { BTC: 0.1, ETH: 2.5, USDC: 10000, USDT: 10000, SHIBA: 1000000 },
       ...insertUser
     };
     this.users.set(user.id, user);
@@ -240,6 +240,8 @@ export class MemoryStorage implements IStorage {
     const liquidity: UserLiquidity = {
       id: nanoid(),
       createdAt: new Date(),
+      status: "ACTIVE",
+      shares: insertLiquidity.amount1 + insertLiquidity.amount2, // Simple share calculation
       ...insertLiquidity
     };
     this.userLiquidity.set(liquidity.id, liquidity);
@@ -351,15 +353,36 @@ export class MemoryStorage implements IStorage {
   async updateUserBalance(userId: string, token: string, amount: number): Promise<void> {
     const user = this.users.get(userId);
     if (user) {
-      if (!user.balance) user.balance = { BTC: 0.1, ETH: 2.5, USDC: 10000, SHIBA: 1000000 };
-      user.balance[token] = (user.balance[token] || 0) + amount;
+      if (!user.balance) user.balance = { BTC: 0.1, ETH: 2.5, USDC: 10000, USDT: 10000, SHIBA: 1000000 };
+      user.balance[token] = amount; // Set absolute amount instead of adding
       this.users.set(userId, user);
+      this.usersByAddress.set(user.address, user);
     }
   }
 
-  async getUserBalance(userId: string): Promise<{ [key: string]: number }> {
+  async getUserBalance(userId: string, token?: string): Promise<any> {
     const user = this.users.get(userId);
-    return user?.balance || { BTC: 0.1, ETH: 2.5, USDC: 10000, SHIBA: 1000000 };
+    const defaultBalance = { BTC: 0.1, ETH: 2.5, USDC: 10000, USDT: 10000, SHIBA: 1000000 };
+    const balance = user?.balance || defaultBalance;
+    
+    if (token) {
+      return balance[token] || 0;
+    }
+    
+    return balance;
+  }
+
+  // Add method to create user liquidity  
+  async createUserLiquidity(insertLiquidity: InsertUserLiquidity): Promise<UserLiquidity> {
+    const liquidity: UserLiquidity = {
+      id: nanoid(),
+      createdAt: new Date(),
+      status: "ACTIVE",
+      shares: insertLiquidity.amount1 + insertLiquidity.amount2, // Simple share calculation
+      ...insertLiquidity
+    };
+    this.userLiquidity.set(liquidity.id, liquidity);
+    return liquidity;
   }
 }
 

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useTradingData } from "@/hooks/use-trading";
 import { useWallet } from "@/hooks/use-wallet";
+import { apiRequest } from "@/lib/queryClient";
 
 const availableTokens = [
   { symbol: "BTC", name: "Bitcoin", icon: "₿", color: "text-yellow-500", price: 67235 },
@@ -22,8 +23,9 @@ export default function SwapPage() {
   const [fromAmount, setFromAmount] = useState("");
   const [toAmount, setToAmount] = useState("");
   const [slippage, setSlippage] = useState([0.5]);
+  const [isSwapping, setIsSwapping] = useState(false);
   const { toast } = useToast();
-  const { user, isConnected, balance } = useWallet();
+  const { user, isConnected, balance, refreshBalance, updateBalance } = useWallet();
   const { createOrderMutation } = useTradingData();
 
   const calculateToAmount = (amount: string) => {
@@ -60,23 +62,65 @@ export default function SwapPage() {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid amount to swap",
+        variant: "destructive",
       });
       return;
     }
 
-    try {
+    const fromAmountNum = parseFloat(fromAmount);
+    const toAmountNum = parseFloat(toAmount.replace(/,/g, ''));
+    const fromBalance = parseFloat(balance[fromToken.symbol as keyof typeof balance]?.replace(/,/g, '') || '0');
+
+    if (fromAmountNum > fromBalance) {
       toast({
-        title: "Swap Successful",
-        description: `Swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}`,
-      });
-      setFromAmount("");
-      setToAmount("");
-    } catch (error) {
-      toast({
-        title: "Swap Failed",
-        description: "Failed to execute swap. Please try again.",
+        title: "Insufficient Balance",
+        description: `Not enough ${fromToken.symbol}. Available: ${fromBalance.toFixed(6)}`,
         variant: "destructive",
       });
+      return;
+    }
+
+    setIsSwapping(true);
+    try {
+      // Call swap API
+      const response = await apiRequest("POST", "/api/swap", {
+        userId: user.id,
+        fromToken: fromToken.symbol,
+        toToken: toToken.symbol,
+        fromAmount: fromAmountNum,
+        toAmount: toAmountNum
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Swap failed');
+      }
+
+      const result = await response.json();
+
+      // Update local balances immediately for better UX
+      updateBalance(fromToken.symbol, fromAmountNum, 'subtract');
+      updateBalance(toToken.symbol, toAmountNum * 0.999, 'add'); // Apply 0.1% fee
+
+      // Refresh balance from server to ensure sync
+      await refreshBalance();
+
+      toast({
+        title: "Swap Successful",
+        description: `Swapped ${fromAmount} ${fromToken.symbol} for ${(toAmountNum * 0.999).toFixed(6)} ${toToken.symbol}`,
+      });
+      
+      setFromAmount("");
+      setToAmount("");
+    } catch (error: any) {
+      console.error('Swap error:', error);
+      toast({
+        title: "Swap Failed",
+        description: error.message || "Failed to execute swap. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSwapping(false);
     }
   };
 
@@ -99,7 +143,7 @@ export default function SwapPage() {
                   placeholder="0.00"
                   value={fromAmount}
                   onChange={(e) => handleFromAmountChange(e.target.value)}
-                  className="border-0 bg-transparent text-2xl font-semibold p-0 h-auto flex-1"
+                  className="border-0 bg-transparent text-2xl font-semibold p-0 h-auto flex-1 text-white"
                 />
                 <Select value={fromToken.symbol} onValueChange={(value) => {
                   const token = availableTokens.find(t => t.symbol === value);
@@ -143,6 +187,7 @@ export default function SwapPage() {
               variant="ghost" 
               className="w-10 h-10 rounded-full hover:bg-shiba-card"
               onClick={handleTokenSwap}
+              disabled={isSwapping}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -160,7 +205,7 @@ export default function SwapPage() {
                   placeholder="0.00"
                   value={toAmount}
                   readOnly
-                  className="border-0 bg-transparent text-2xl font-semibold p-0 h-auto flex-1"
+                  className="border-0 bg-transparent text-2xl font-semibold p-0 h-auto flex-1 text-white"
                 />
                 <Select value={toToken.symbol} onValueChange={(value) => {
                   const token = availableTokens.find(t => t.symbol === value);
@@ -238,9 +283,9 @@ export default function SwapPage() {
           <Button 
             onClick={handleSwap}
             className="w-full shiba-gradient py-3 font-semibold"
-            disabled={!isConnected || !fromAmount || parseFloat(fromAmount) <= 0}
+            disabled={!isConnected || !fromAmount || parseFloat(fromAmount) <= 0 || isSwapping}
           >
-            {!isConnected ? "Connect Wallet" : "Swap"}
+            {!isConnected ? "Connect Wallet" : isSwapping ? "Swapping..." : "Swap"}
           </Button>
         </CardContent>
       </Card>

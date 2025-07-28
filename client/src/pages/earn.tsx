@@ -56,23 +56,28 @@ export default function EarnPage() {
   // Get user's staking positions
   const { data: stakingPositions = [] } = useQuery({
     queryKey: ["/api/staking", "demo-user"],
+    enabled: true
   });
 
   // Get user's liquidity positions
   const { data: liquidityPositions = [] } = useQuery({
     queryKey: ["/api/users", "demo-user", "liquidity"],
+    enabled: true
   });
 
   // Get liquidity pools
   const { data: liquidityPools = [] } = useQuery({
     queryKey: ["/api/pools"],
+    enabled: true
   });
+
   const [stakeAmount, setStakeAmount] = useState("");
   const [liquidityAmount, setLiquidityAmount] = useState("");
   const [isStaking, setIsStaking] = useState(false);
   const [isAddingLiquidity, setIsAddingLiquidity] = useState(false);
+  const [selectedStakePool, setSelectedStakePool] = useState<string>("");
   const { toast } = useToast();
-  const { user, isConnected, balance } = useWallet();
+  const { user, isConnected, balance, refreshBalance, updateBalance } = useWallet();
 
   // Mock farming pools data
   const farmingPools = [
@@ -105,8 +110,8 @@ export default function EarnPage() {
     }
   ];
 
-  const handleStake = async (poolId: string) => {
-    if (!isConnected) {
+  const handleStake = async (poolId: string, token: string) => {
+    if (!isConnected || !user) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to stake tokens",
@@ -124,18 +129,50 @@ export default function EarnPage() {
       return;
     }
 
+    const amount = parseFloat(stakeAmount);
+    const availableBalance = parseFloat(balance[token as keyof typeof balance]?.replace(/,/g, '') || '0');
+
+    if (amount > availableBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: `Not enough ${token}. Available: ${availableBalance.toFixed(6)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsStaking(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await apiRequest("POST", "/api/staking", {
+        userId: user.id,
+        token,
+        amount,
+        poolId,
+        apy: stakingPools.find(p => p.token === token)?.apy || "0%",
+        status: "ACTIVE"
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Staking failed');
+      }
+
+      // Update balance locally
+      updateBalance(token, amount, 'subtract');
+      
+      // Refresh data
+      await refreshBalance();
+
       toast({
         title: "Staking Successful",
-        description: `Successfully staked ${stakeAmount} SHIBA tokens`,
+        description: `Successfully staked ${stakeAmount} ${token} tokens`,
       });
       setStakeAmount("");
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Staking error:', error);
       toast({
         title: "Staking Failed",
-        description: "Failed to stake tokens. Please try again.",
+        description: error.message || "Failed to stake tokens. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -144,7 +181,7 @@ export default function EarnPage() {
   };
 
   const handleAddLiquidity = async (poolId: string) => {
-    if (!isConnected) {
+    if (!isConnected || !user) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to provide liquidity",
@@ -162,18 +199,55 @@ export default function EarnPage() {
       return;
     }
 
+    const amount = parseFloat(liquidityAmount);
+    const usdcBalance = parseFloat(balance.USDC?.replace(/,/g, '') || '0');
+
+    if (amount > usdcBalance) {
+      toast({
+        title: "Insufficient Balance",
+        description: `Not enough USDC. Available: ${usdcBalance.toFixed(2)}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAddingLiquidity(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // For simplicity, we'll add equal amounts of USDC and the paired token
+      const pairedAmount = amount; // In a real scenario, this would be calculated based on the pool ratio
+
+      const response = await apiRequest("POST", "/api/liquidity", {
+        userId: user.id,
+        poolId,
+        token1: "USDC",
+        token2: "BTC", // This would be dynamic based on the pool
+        amount1: amount,
+        amount2: pairedAmount / 67235, // Convert USDC to BTC
+        status: "ACTIVE"
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Adding liquidity failed');
+      }
+
+      // Update balances locally
+      updateBalance("USDC", amount, 'subtract');
+      updateBalance("BTC", pairedAmount / 67235, 'subtract');
+
+      // Refresh data
+      await refreshBalance();
+
       toast({
         title: "Liquidity Added",
         description: `Successfully added ${liquidityAmount} USDC to liquidity pool`,
       });
       setLiquidityAmount("");
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Liquidity error:', error);
       toast({
         title: "Adding Liquidity Failed",
-        description: "Failed to add liquidity. Please try again.",
+        description: error.message || "Failed to add liquidity. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -211,12 +285,12 @@ export default function EarnPage() {
                         Staked: {position.amount} {position.token}
                       </p>
                       <p className="text-sm text-shiba-text-muted">
-                        APY: {position.apy}% | Status: {position.status}
+                        APY: {position.apy} | Status: {position.status}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-green-500">
-                        ${(position.amount * (position.token === 'BTC' ? 67235 : position.token === 'ETH' ? 3567 : position.token === 'USDT' ? 1 : 0.000022)).toFixed(2)}
+                        ${(position.amount * (position.token === 'BTC' ? 67235 : position.token === 'ETH' ? 3567 : position.token === 'USDC' ? 1 : 0.000022)).toFixed(2)}
                       </p>
                       <p className="text-sm text-shiba-text-muted">
                         {new Date(position.createdAt).toLocaleDateString()}
@@ -286,16 +360,55 @@ export default function EarnPage() {
               <div key={pool.id} className="p-4 rounded-lg bg-shiba-dark/50">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-lg">{pool.token}</h3>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <span>{pool.icon}</span>
+                      {pool.token}
+                    </h3>
                     <div className="flex items-center gap-4 text-sm text-shiba-text-muted">
                       <span>APY: <span className="text-green-500 font-semibold">{pool.apy}</span></span>
                       <span>TVL: {pool.tvl}</span>
-                      <span>Lock Period: {pool.lockPeriod}</span>
+                      <span>Lock: {pool.lockPeriod}</span>
                     </div>
                   </div>
-                  <Button size="sm">
-                    Stake
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="shiba-gradient" disabled={!isConnected}>
+                        {isConnected ? "Stake" : "Connect Wallet"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Stake {pool.token}</DialogTitle>
+                        <DialogDescription>
+                          Earn {pool.apy} APY by staking your {pool.token} tokens.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Amount ({pool.token})</Label>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={stakeAmount}
+                            onChange={(e) => setStakeAmount(e.target.value)}
+                            className="text-white"
+                          />
+                          <div className="text-sm text-shiba-text-muted mt-1">
+                            Balance: {balance[pool.token as keyof typeof balance]} {pool.token}
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button 
+                          onClick={() => handleStake(pool.id, pool.token)}
+                          disabled={isStaking || !isConnected}
+                          className="shiba-gradient"
+                        >
+                          {isStaking ? "Staking..." : "Stake"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             ))}
@@ -315,20 +428,56 @@ export default function EarnPage() {
               <div key={pool.id} className="p-4 rounded-lg bg-shiba-dark/50">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-lg">{pool.token1}/{pool.token2}</h3>
+                    <h3 className="font-semibold text-lg">{pool.symbol}</h3>
                     <div className="flex items-center gap-4 text-sm text-shiba-text-muted">
-                      <span>APY: <span className="text-blue-500 font-semibold">{pool.apy}%</span></span>
-                      <span>TVL: ${pool.totalLiquidity.toFixed(2)}</span>
+                      <span>APR: <span className="text-blue-500 font-semibold">{pool.apr}%</span></span>
+                      <span>TVL: ${parseFloat(pool.totalLiquidity).toFixed(2)}</span>
                     </div>
                   </div>
-                  <Button size="sm">
-                    Add Liquidity
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700" disabled={!isConnected}>
+                        {isConnected ? "Add Liquidity" : "Connect Wallet"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Liquidity to {pool.name}</DialogTitle>
+                        <DialogDescription>
+                          Provide liquidity to earn {pool.apr}% APR from trading fees.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Amount (USDC)</Label>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={liquidityAmount}
+                            onChange={(e) => setLiquidityAmount(e.target.value)}
+                            className="text-white"
+                          />
+                          <div className="text-sm text-shiba-text-muted mt-1">
+                            Balance: {balance.USDC} USDC
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button 
+                          onClick={() => handleAddLiquidity(pool.id)}
+                          disabled={isAddingLiquidity || !isConnected}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          {isAddingLiquidity ? "Adding..." : "Add Liquidity"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             )) : (
               <div className="p-4 rounded-lg bg-shiba-dark/50">
-                <p className="text-center text-shiba-text-muted">No liquidity pools available</p>
+                <p className="text-center text-shiba-text-muted">Loading liquidity pools...</p>
               </div>
             )}
           </CardContent>
@@ -336,7 +485,7 @@ export default function EarnPage() {
       </div>
 
       {/* Farming Pools */}
-      <div>
+      <div className="mt-8">
         <h2 className="text-2xl font-bold mb-6">Farming Pools</h2>
         <Card className="glass-card">
           <CardContent className="p-6">
@@ -387,6 +536,7 @@ export default function EarnPage() {
                             placeholder="0.00"
                             value={liquidityAmount}
                             onChange={(e) => setLiquidityAmount(e.target.value)}
+                            className="text-white"
                           />
                           <div className="text-sm text-shiba-text-muted mt-1">
                             Balance: {balance.USDC} USDC

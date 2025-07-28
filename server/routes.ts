@@ -98,6 +98,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user balance
+  app.get("/api/users/:userId/balance", async (req, res) => {
+    try {
+      const balance = await storage.getUserBalance(req.params.userId);
+      res.json(balance);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Positions
   app.get("/api/positions/:userId", async (req, res) => {
     try {

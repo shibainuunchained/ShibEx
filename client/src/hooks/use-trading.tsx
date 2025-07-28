@@ -35,17 +35,23 @@ export function useTradingData() {
   };
 
   // Create position mutation
-  const createPositionMutation = useMutation({
+  const createPosition = useMutation({
     mutationFn: async (positionData: {
       userId: string;
-      market: string;
+      symbol: string;
       side: "LONG" | "SHORT";
-      size: string;
-      collateral: string;
-      entryPrice: string;
-      leverage: string;
+      size: number;
+      entryPrice: number;
+      leverage: number;
+      margin: number;
+      pnl: number;
+      status: "OPEN";
     }) => {
       const response = await apiRequest("POST", "/api/positions", positionData);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create position');
+      }
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -58,7 +64,7 @@ export function useTradingData() {
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: {
       userId: string;
-      market: string;
+      symbol: string;
       type: "MARKET" | "LIMIT" | "STOP_LOSS" | "TAKE_PROFIT";
       side: "LONG" | "SHORT";
       size: string;
@@ -66,6 +72,10 @@ export function useTradingData() {
       triggerPrice?: string;
     }) => {
       const response = await apiRequest("POST", "/api/orders", orderData);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create order');
+      }
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -77,6 +87,10 @@ export function useTradingData() {
   const closePositionMutation = useMutation({
     mutationFn: async ({ positionId, userId }: { positionId: string; userId: string }) => {
       const response = await apiRequest("POST", `/api/positions/${positionId}/close`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to close position');
+      }
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -89,6 +103,10 @@ export function useTradingData() {
   const cancelOrderMutation = useMutation({
     mutationFn: async ({ orderId, userId }: { orderId: string; userId: string }) => {
       const response = await apiRequest("DELETE", `/api/orders/${orderId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to cancel order');
+      }
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -147,10 +165,10 @@ export function useTradingData() {
     usePositions,
     useOrders,
     useTrades,
-    createPosition: createPositionMutation || { isPending: false, mutateAsync: async () => {} },
-    createOrder: createOrderMutation || { isPending: false, mutateAsync: async () => {} },
-    closePosition: closePositionMutation || { isPending: false, mutateAsync: async () => {} },
-    cancelOrder: cancelOrderMutation || { isPending: false, mutateAsync: async () => {} },
+    createPosition,
+    createOrder: createOrderMutation,
+    closePosition: closePositionMutation,
+    cancelOrder: cancelOrderMutation,
     calculateLiquidationPrice,
     calculatePnL,
     calculateFees,
@@ -169,7 +187,7 @@ export function usePortfolio(userId: string) {
   const tradesArray = trades as Trade[];
 
   const totalPortfolioValue = positionsArray.reduce((total: number, position: Position) => {
-    const netValue = parseFloat(position.pnl || "0") + parseFloat(position.collateral);
+    const netValue = parseFloat(position.pnl || "0") + parseFloat(position.margin);
     return total + netValue;
   }, 0);
 

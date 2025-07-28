@@ -38,14 +38,15 @@ export default function TradingChart({ symbol, price, change }: TradingChartProp
         if (data && Array.isArray(data) && data.length > 0) {
           setChartData(data);
         } else {
+          console.log('API returned empty data, using fallback');
           generateFallbackData();
         }
       } else {
-        console.warn(`Chart API response: ${response.status}`);
+        console.log(`Chart API response: ${response.status}, using fallback data`);
         generateFallbackData();
       }
     } catch (error) {
-      console.error('Failed to fetch chart data:', error);
+      console.log('Chart API error, using fallback data:', error);
       generateFallbackData();
     } finally {
       setIsLoading(false);

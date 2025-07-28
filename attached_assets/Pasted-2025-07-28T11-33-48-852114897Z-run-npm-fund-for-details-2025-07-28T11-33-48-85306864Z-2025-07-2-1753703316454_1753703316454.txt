@@ -1,0 +1,65 @@
+2025-07-28T11:33:48.852114897Z   run `npm fund` for details
+2025-07-28T11:33:48.85306864Z 
+2025-07-28T11:33:48.853078Z found 0 vulnerabilities
+2025-07-28T11:33:49.031689531Z 
+2025-07-28T11:33:49.031715552Z > rest-express@1.0.0 build
+2025-07-28T11:33:49.031725152Z > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js && node remove-banner.js
+2025-07-28T11:33:49.031733143Z 
+2025-07-28T11:33:49.247825801Z vite v6.3.5 building for production...
+2025-07-28T11:33:49.540687988Z transforming...
+2025-07-28T11:33:49.592989068Z Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+2025-07-28T11:33:49.593008238Z   npx update-browserslist-db@latest
+2025-07-28T11:33:49.593012508Z   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2025-07-28T11:33:52.618179211Z ✓ 1731 modules transformed.
+2025-07-28T11:33:52.932587395Z rendering chunks...
+2025-07-28T11:33:52.940911759Z computing gzip size...
+2025-07-28T11:33:52.953539008Z ../dist/index.html                   0.69 kB │ gzip:   0.41 kB
+2025-07-28T11:33:52.953566488Z ../dist/assets/index-DQmzZcY4.css   63.55 kB │ gzip:  11.19 kB
+2025-07-28T11:33:52.953705172Z ../dist/assets/index-a6rA4s6T.js   420.41 kB │ gzip: 127.98 kB
+2025-07-28T11:33:52.953989179Z ✓ built in 3.68s
+2025-07-28T11:33:53.057580044Z 
+2025-07-28T11:33:53.057601894Z   dist/index.js  33.7kb
+2025-07-28T11:33:53.057605414Z 
+2025-07-28T11:33:53.057608424Z ⚡ Done in 5ms
+2025-07-28T11:33:53.086724237Z Starting banner removal process...
+2025-07-28T11:33:53.092514669Z Removed banner from: dist/assets/index-DQmzZcY4.css
+2025-07-28T11:33:53.139698753Z Removed banner from: dist/assets/index-a6rA4s6T.js
+2025-07-28T11:33:53.163808723Z Removed banner from: dist/index.html
+2025-07-28T11:33:53.193361076Z Removed banner from: dist/index.js
+2025-07-28T11:33:53.193439129Z Banner removal complete.
+2025-07-28T11:33:56.824703014Z ==> Uploading build...
+2025-07-28T11:34:04.385243072Z ==> Uploaded in 4.8s. Compression took 2.8s
+2025-07-28T11:34:04.412732684Z ==> Build successful 🎉
+2025-07-28T11:34:07.425402586Z ==> Deploying...
+2025-07-28T11:34:23.920128987Z ==> Running 'npm run start'
+2025-07-28T11:34:24.918278077Z 
+2025-07-28T11:34:24.918303108Z > rest-express@1.0.0 start
+2025-07-28T11:34:24.918308848Z > NODE_ENV=production node dist/index.js
+2025-07-28T11:34:24.918311408Z 
+2025-07-28T11:34:27.62827896Z Storage initialized successfully with sample data
+2025-07-28T11:34:27.717357631Z file:///opt/render/project/src/dist/index.js:1083
+2025-07-28T11:34:27.717380102Z     throw new Error(
+2025-07-28T11:34:27.717382552Z           ^
+2025-07-28T11:34:27.717384552Z 
+2025-07-28T11:34:27.717387802Z Error: Could not find the build directory: /opt/render/project/src/dist/public, make sure to build the client first
+2025-07-28T11:34:27.717392732Z     at serveStatic (file:///opt/render/project/src/dist/index.js:1083:11)
+2025-07-28T11:34:27.717395612Z     at file:///opt/render/project/src/dist/index.js:1133:5
+2025-07-28T11:34:27.717398172Z 
+2025-07-28T11:34:27.717400592Z Node.js v22.16.0
+2025-07-28T11:34:28.781796166Z ==> Exited with status 1
+2025-07-28T11:34:28.800233343Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-07-28T11:34:34.082270016Z ==> Running 'npm run start'
+2025-07-28T11:34:34.884233137Z 
+2025-07-28T11:34:34.884252317Z > rest-express@1.0.0 start
+2025-07-28T11:34:34.884257217Z > NODE_ENV=production node dist/index.js
+2025-07-28T11:34:34.884259987Z 
+2025-07-28T11:34:37.577743323Z Storage initialized successfully with sample data
+2025-07-28T11:34:37.580375154Z file:///opt/render/project/src/dist/index.js:1083
+2025-07-28T11:34:37.580385084Z     throw new Error(
+2025-07-28T11:34:37.580387224Z           ^
+2025-07-28T11:34:37.580388874Z 
+2025-07-28T11:34:37.580391014Z Error: Could not find the build directory: /opt/render/project/src/dist/public, make sure to build the client first
+2025-07-28T11:34:37.580394405Z     at serveStatic (file:///opt/render/project/src/dist/index.js:1083:11)
+2025-07-28T11:34:37.580396245Z     at file:///opt/render/project/src/dist/index.js:1133:5
+2025-07-28T11:34:37.580397805Z 
+2025-07-28T11:34:37.580399555Z Node.js v22.16.0

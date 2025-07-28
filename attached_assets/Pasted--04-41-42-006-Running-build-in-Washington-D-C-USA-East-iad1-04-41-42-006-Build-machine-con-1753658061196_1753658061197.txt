@@ -1,0 +1,60 @@
+[04:41:42.006] Running build in Washington, D.C., USA (East) – iad1
+[04:41:42.006] Build machine configuration: 2 cores, 8 GB
+[04:41:42.043] Cloning github.com/shibainuunchained/ShibEx (Branch: main, Commit: ab85ec8)
+[04:41:42.053] Skipping build cache, deployment was triggered without cache.
+[04:41:42.284] Cloning completed: 241.000ms
+[04:41:42.315] Found .vercelignore
+[04:41:42.320] Removed 24 ignored files defined in .vercelignore
+[04:41:42.320]   /.git/config
+[04:41:42.320]   /.git/description
+[04:41:42.320]   /.git/FETCH_HEAD
+[04:41:42.320]   /.git/HEAD
+[04:41:42.320]   /.git/hooks/applypatch-msg.sample
+[04:41:42.320]   /.git/hooks/commit-msg.sample
+[04:41:42.320]   /.git/hooks/fsmonitor-watchman.sample
+[04:41:42.320]   /.git/hooks/post-update.sample
+[04:41:42.320]   /.git/hooks/pre-applypatch.sample
+[04:41:42.320]   /.git/hooks/pre-commit.sample
+[04:41:44.282] Running "vercel build"
+[04:41:46.192] Vercel CLI 44.5.0
+[04:41:47.019] Installing dependencies...
+[04:41:51.115] npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+[04:41:55.572] 
+[04:41:55.573] added 469 packages in 8s
+[04:41:55.574] 
+[04:41:55.574] 68 packages are looking for funding
+[04:41:55.574]   run `npm fund` for details
+[04:41:55.729] 
+[04:41:55.729] > rest-express@1.0.0 build
+[04:41:55.729] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[04:41:55.730] 
+[04:41:56.028] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[04:41:56.078] transforming...
+[04:41:56.359] Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+[04:41:56.359]   npx update-browserslist-db@latest
+[04:41:56.359]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[04:42:00.806] [32m✓[39m 1734 modules transformed.
+[04:42:01.110] rendering chunks...
+[04:42:01.120] computing gzip size...
+[04:42:01.136] [2m../dist/[22m[32mindex.html                 [39m[1m[2m  0.94 kB[22m[1m[22m[2m │ gzip:   0.52 kB[22m
+[04:42:01.137] [2m../dist/[22m[2massets/[22m[35mindex-DQmzZcY4.css  [39m[1m[2m 63.55 kB[22m[1m[22m[2m │ gzip:  11.19 kB[22m
+[04:42:01.137] [2m../dist/[22m[2massets/[22m[36mindex-DaWgkZzF.js   [39m[1m[2m417.41 kB[22m[1m[22m[2m │ gzip: 126.75 kB[22m
+[04:42:01.138] [32m✓ built in 5.08s[39m
+[04:42:01.174] 
+[04:42:01.174]   dist/index.js  34.9kb
+[04:42:01.174] 
+[04:42:01.174] ⚡ Done in 7ms
+[04:42:01.207] Installing dependencies...
+[04:42:04.208] npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+[04:42:04.272] 
+[04:42:04.273] added 77 packages in 3s
+[04:42:04.273] 
+[04:42:04.273] 17 packages are looking for funding
+[04:42:04.273]   run `npm fund` for details
+[04:42:04.962] Build Completed in /vercel/output [18s]
+[04:42:05.020] Deploying outputs...
+[04:42:08.374] 
+[04:42:08.524] Deployment completed
+[04:42:25.140] Uploading build cache [71.46 MB]...
+[04:42:26.329] Build cache uploaded: 1.193s
+[04:42:28.580] Exiting build container

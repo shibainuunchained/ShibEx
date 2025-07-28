@@ -1,0 +1,42 @@
+The above error occurred in the <TradingForm> component:
+
+    at TradingForm (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/src/components/trading/trading-form.tsx:49:39)
+    at div
+    at div
+    at div
+    at TradePage (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/src/pages/trade.tsx:34:39)
+    at Route (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8f6e7897:323:16)
+    at Switch (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8f6e7897:379:17)
+    at Router
+    at div
+    at Provider (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-KPO4B3UQ.js?v=b6e0734e:32:15)
+    at TooltipProvider (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=63218597:59:5)
+    at WalletProvider (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/src/hooks/use-wallet.tsx:22:34)
+    at QueryClientProvider (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=402ce588:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+Cannot read properties of undefined (reading 'USDT')
+[vite] 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'send')"
+stack: "TypeError: Cannot read properties of undefined (reading 'send')↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:483:10)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:849:21)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:326:24)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:417:33)↵ at HMRClient.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:136:20)↵ at HMRContext.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:100:20)↵ at sendError (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:17:7)↵ at https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:21:3↵ at Object.invokeGuardedCallbackDev (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6e0734e:3705:24)↵ at invokeGuardedCallback (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6e0734e:3739:39)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+[vite] 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'send')"
+stack: "TypeError: Cannot read properties of undefined (reading 'send')↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:483:10)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:849:21)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:326:24)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:417:33)↵ at HMRClient.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:136:20)↵ at HMRContext.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:100:20)↵ at sendError (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:17:7)↵ at https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:21:3↵ at Object.invokeGuardedCallbackDev (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6e0734e:3705:24)↵ at invokeGuardedCallback (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6e0734e:3739:39)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+[vite] 
+TypeError {}
+message: "Cannot read properties of undefined (reading 'send')"
+stack: "TypeError: Cannot read properties of undefined (reading 'send')↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:483:10)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:849:21)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:326:24)↵ at Object.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:417:33)↵ at HMRClient.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:136:20)↵ at HMRContext.send (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/@vite/client:100:20)↵ at sendError (https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:17:7)↵ at https://51dc0c03-6aaa-4ea8-a8d2-192907f8f2a2-00-2var1au9m5h5r.sisko.replit.dev/:21:3"
+get stack: ƒ ()
+set stack: ƒ ()

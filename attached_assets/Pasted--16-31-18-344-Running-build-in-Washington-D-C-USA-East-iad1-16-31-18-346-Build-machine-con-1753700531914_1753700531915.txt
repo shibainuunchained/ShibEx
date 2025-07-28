@@ -1,0 +1,86 @@
+[16:31:18.344] Running build in Washington, D.C., USA (East) – iad1
+[16:31:18.346] Build machine configuration: 2 cores, 8 GB
+[16:31:18.365] Cloning github.com/shibainuunchained/ShibEx (Branch: main, Commit: 765ccc2)
+[16:31:18.374] Skipping build cache, deployment was triggered without cache.
+[16:31:18.681] Cloning completed: 315.000ms
+[16:31:18.712] Found .vercelignore
+[16:31:18.718] Removed 24 ignored files defined in .vercelignore
+[16:31:18.718]   /.git/config
+[16:31:18.718]   /.git/description
+[16:31:18.718]   /.git/FETCH_HEAD
+[16:31:18.718]   /.git/HEAD
+[16:31:18.718]   /.git/hooks/applypatch-msg.sample
+[16:31:18.718]   /.git/hooks/commit-msg.sample
+[16:31:18.718]   /.git/hooks/fsmonitor-watchman.sample
+[16:31:18.718]   /.git/hooks/post-update.sample
+[16:31:18.718]   /.git/hooks/pre-applypatch.sample
+[16:31:18.718]   /.git/hooks/pre-commit.sample
+[16:31:20.507] Running "vercel build"
+[16:31:21.007] Vercel CLI 44.5.0
+[16:31:21.744] Installing dependencies...
+[16:31:25.893] npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+[16:31:30.233] 
+[16:31:30.234] added 472 packages in 8s
+[16:31:30.234] 
+[16:31:30.235] 70 packages are looking for funding
+[16:31:30.235]   run `npm fund` for details
+[16:31:30.454] 
+[16:31:30.455] > rest-express@1.0.0 build
+[16:31:30.456] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && node remove-banner.js
+[16:31:30.456] 
+[16:31:31.438] ▲ [WARNING] Duplicate key "scripts" in object literal [duplicate-object-key]
+[16:31:31.439] 
+[16:31:31.439]     package.json:103:2:
+[16:31:31.439]       103 │   "scripts": {
+[16:31:31.439]           ╵   ~~~~~~~~~
+[16:31:31.439] 
+[16:31:31.439]   The original key "scripts" is here:
+[16:31:31.439] 
+[16:31:31.439]     package.json:6:2:
+[16:31:31.439]       6 │   "scripts": {
+[16:31:31.439]         ╵   ~~~~~~~~~
+[16:31:31.439] 
+[16:31:31.525] [36mvite v6.3.5 [32mbuilding for production...[36m[39m
+[16:31:31.602] transforming...
+[16:31:32.072] Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+[16:31:32.073]   npx update-browserslist-db@latest
+[16:31:32.073]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[16:31:36.040] [32m✓[39m 1731 modules transformed.
+[16:31:36.403] rendering chunks...
+[16:31:36.413] computing gzip size...
+[16:31:36.431] [2m../dist/[22m[32mindex.html                 [39m[1m[2m  0.69 kB[22m[1m[22m[2m │ gzip:   0.41 kB[22m
+[16:31:36.432] [2m../dist/[22m[2massets/[22m[35mindex-DQmzZcY4.css  [39m[1m[2m 63.55 kB[22m[1m[22m[2m │ gzip:  11.19 kB[22m
+[16:31:36.432] [2m../dist/[22m[2massets/[22m[36mindex-a6rA4s6T.js   [39m[1m[2m420.41 kB[22m[1m[22m[2m │ gzip: 127.98 kB[22m
+[16:31:36.432] [32m✓ built in 4.88s[39m
+[16:31:36.489] ▲ [WARNING] Duplicate key "scripts" in object literal [duplicate-object-key]
+[16:31:36.490] 
+[16:31:36.490]     package.json:103:2:
+[16:31:36.490]       103 │   "scripts": {
+[16:31:36.490]           ╵   ~~~~~~~~~
+[16:31:36.490] 
+[16:31:36.490]   The original key "scripts" is here:
+[16:31:36.490] 
+[16:31:36.490]     package.json:6:2:
+[16:31:36.490]       6 │   "scripts": {
+[16:31:36.492]         ╵   ~~~~~~~~~
+[16:31:36.492] 
+[16:31:36.498] 1 warning
+[16:31:36.499] 
+[16:31:36.499]   dist/index.js  33.3kb
+[16:31:36.499] 
+[16:31:36.499] ⚡ Done in 9ms
+[16:31:36.539] file:///vercel/path0/remove-banner.js:2
+[16:31:36.539] const fs = require('fs');
+[16:31:36.539]            ^
+[16:31:36.539] 
+[16:31:36.539] ReferenceError: require is not defined in ES module scope, you can use import instead
+[16:31:36.539] This file is being treated as an ES module because it has a '.js' file extension and '/vercel/path0/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+[16:31:36.540]     at file:///vercel/path0/remove-banner.js:2:12
+[16:31:36.540]     at ModuleJob.run (node:internal/modules/esm/module_job:329:25)
+[16:31:36.540]     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+[16:31:36.540]     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+[16:31:36.540] 
+[16:31:36.540] Node.js v22.17.1
+[16:31:36.552] Error: Command "npm run build" exited with 1
+[16:31:36.768] 
+[16:31:39.650] Exiting build container

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TradingChart from "@/components/trading/chart";
-import TradingForm from "@/components/trading/trading-form";
+import { TradingForm } from "@/components/trading/trading-form";
 import PositionsTable from "@/components/trading/positions-table";
 import MarketStats from "@/components/trading/market-stats";
 import { useWebSocket, getCurrentMarketPrices } from "@/hooks/use-websocket";

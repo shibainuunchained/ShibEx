@@ -1,5 +1,20 @@
 
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
-  <circle cx="64" cy="64" r="60" fill="#FF6B35"/>
-  <text x="64" y="74" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="32" font-weight="bold">S</text>
+  <!-- Background gradient circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#gradient1)"/>
+  
+  <!-- Shiba Inu silhouette -->
+  <path d="M45 45c-5 0-8 3-8 8 0 3 1 5 3 7l8 8c2 2 5 2 7 0l8-8c2-2 3-4 3-7 0-5-3-8-8-8-3 0-5 1-7 3-2-2-4-3-6-3z" fill="white" opacity="0.9"/>
+  
+  <!-- Modern "SU" text -->
+  <text x="64" y="85" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">SU</text>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="50%" stop-color="#F7931E"/>
+      <stop offset="100%" stop-color="#FFD700"/>
+    </linearGradient>
+  </defs>
 </svg>

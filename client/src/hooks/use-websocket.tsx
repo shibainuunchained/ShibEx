@@ -7,6 +7,16 @@ interface MarketData {
   volume24h?: string;
 }
 
+// Shared price state across the app
+let sharedBasePrices = {
+  'BTC/USD': 107234.56,
+  'ETH/USD': 3521.89,
+  'SHIBA/USD': 0.00002198
+};
+
+// Export function to get current prices for other components
+export const getCurrentMarketPrices = () => ({ ...sharedBasePrices });
+
 export function useWebSocket() {
   const [marketData, setMarketData] = useState<MarketData[]>([
     { symbol: "BTC/USD", price: "107234.56", change24h: "2.34" },
@@ -15,22 +25,19 @@ export function useWebSocket() {
   ]);
   const [isConnected, setIsConnected] = useState(true);
   const priceUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const basePricesRef = useRef({
-    'BTC/USD': 107234.56,
-    'ETH/USD': 3521.89,
-    'SHIBA/USD': 0.00002198
-  });
+  const basePricesRef = useRef(sharedBasePrices);
 
   // Generate realistic price movements
   const generateRealisticPrice = (symbol: string, basePrice: number) => {
-    const volatility = symbol.includes('BTC') ? 0.0005 : 
-                      symbol.includes('ETH') ? 0.001 : 0.02; // SHIBA is more volatile
+    const volatility = symbol.includes('BTC') ? 0.0003 : 
+                      symbol.includes('ETH') ? 0.0005 : 0.01; // Reduced volatility for more stability
     
     const change = (Math.random() - 0.5) * volatility * 2;
     const newPrice = basePrice * (1 + change);
     
-    // Update base price for next iteration
+    // Update both local and shared base prices
     basePricesRef.current[symbol as keyof typeof basePricesRef.current] = newPrice;
+    sharedBasePrices[symbol as keyof typeof sharedBasePrices] = newPrice;
     
     return newPrice;
   };

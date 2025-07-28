@@ -28,12 +28,20 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center p-1">
-              <div className="w-full h-full bg-yellow-200 rounded-full flex items-center justify-center">
-                <span className="text-lg">🐕</span>
-              </div>
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
+              <img 
+                src="/assets/logo.svg" 
+                alt="ShibaU" 
+                className="w-6 h-6 rounded-full"
+                onError={(e) => {
+                  // Fallback to emoji if SVG fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling!.style.display = 'block';
+                }}
+              />
+              <span className="text-lg hidden">🐕</span>
             </div>
-            <span className="text-xl font-bold text-shiba-text-primary">ShibEx</span>
+            <span className="text-xl font-bold text-shiba-text-primary">ShibaU</span>
           </Link>
 
           {/* Navigation */}
@@ -81,8 +89,8 @@ export default function Navigation() {
                         <span>{balance.ETH}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>💰 USDC:</span>
-                        <span>{balance.USDC}</span>
+                        <span>💰 USDT:</span>
+                        <span>{balance.USDT}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>🐕 SHIBA:</span>

@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import TradingChart from "@/components/trading/chart";
-import { TradingForm } from "@/components/trading/trading-form";
+import TradingForm from "@/components/trading/trading-form";
 import PositionsTable from "@/components/trading/positions-table";
 import MarketStats from "@/components/trading/market-stats";
+import { useWebSocket, getCurrentMarketPrices } from "@/hooks/use-websocket";
 
+// Available trading pairs with synchronized prices
 const availablePairs = [
   { symbol: "BTC/USD", icon: "₿", price: 107234.56, change: 2.34 },
   { symbol: "ETH/USD", icon: "Ξ", price: 3521.89, change: -0.87 },
@@ -17,26 +15,17 @@ const availablePairs = [
 export default function TradePage() {
   const { marketData, isConnected } = useWebSocket();
   const [selectedPair, setSelectedPair] = useState(availablePairs[0]);
-  
-  // Safe price extraction with fallbacks
+
+  // Get current price from live market data, fallback to pair price
   const getCurrentPrice = () => {
-    try {
-      const currentData = marketData.find(data => data.symbol === selectedPair.symbol);
-      return currentData ? parseFloat(currentData.price) : selectedPair.price;
-    } catch (error) {
-      console.warn("Error getting current price:", error);
-      return selectedPair.price;
-    }
+    const marketItem = marketData.find(item => item.symbol === selectedPair.symbol);
+    return marketItem ? parseFloat(marketItem.price) : selectedPair.price;
   };
 
+  // Get current change from live market data, fallback to pair change  
   const getCurrentChange = () => {
-    try {
-      const currentData = marketData.find(data => data.symbol === selectedPair.symbol);
-      return currentData ? parseFloat(currentData.change24h || "0") : selectedPair.change;
-    } catch (error) {
-      console.warn("Error getting current change:", error);
-      return selectedPair.change;
-    }
+    const marketItem = marketData.find(item => item.symbol === selectedPair.symbol);
+    return marketItem?.change24h ? parseFloat(marketItem.change24h) : selectedPair.change;
   };
 
   const currentPrice = getCurrentPrice();

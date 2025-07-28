@@ -28,7 +28,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [balance, setBalance] = useState({
     BTC: 0.1,
     ETH: 2.5, 
-    USDT: 10000.0,
+    USDT: 10000.0, // Ensure USDT is available for trading
     SHIBA: 1000000.0
   });
 
@@ -48,34 +48,44 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         return await response.json();
       } else {
-        console.warn(`API call failed: ${response.status}`);
+        console.warn(`API call failed: ${url}`, response.status);
         return null;
       }
     } catch (error) {
-      console.warn("API call failed:", error);
+      console.warn("Safe API call failed:", error);
       return null;
     }
   };
 
-  const refreshBalance = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const balanceData = await safeApiCall(`/api/users/${user.id}/balance`);
-      
-      if (balanceData) {
-        setBalance({
-          BTC: balanceData.BTC || 0.1,
-          ETH: balanceData.ETH || 2.5,
-          USDT: balanceData.USDT || 10000.0,
-          SHIBA: balanceData.SHIBA || 1000000.0
+  // Auto-connect on mount for demo (but don't auto-refresh balance)
+  useEffect(() => {
+    const connect = async () => {
+      if (!user) {
+        setUser({
+          id: "_a5rcn0KVzl_FiB1W6uSI",
+          address: "demo-user"
         });
       }
-    } catch (error) {
-      console.warn("Failed to refresh balance:", error);
-      // Keep existing balance on error
+    };
+    connect();
+  }, []);
+
+  // Refresh balance from backend (non-blocking)
+  const refreshBalance = useCallback(async () => {
+    if (!user) return;
+    
+    const result = await safeApiCall(`/api/users/${user.id}/balance`);
+    if (result) {
+      // Only update if backend has valid data, otherwise keep local state
+      const validBalance = {
+        BTC: result.BTC || balance.BTC,
+        ETH: result.ETH || balance.ETH,
+        USDT: result.USDT || balance.USDT, // Preserve USDT
+        SHIBA: result.SHIBA || balance.SHIBA
+      };
+      setBalance(validBalance);
     }
-  }, [user]);
+  }, [user, balance]);
 
   const updateBalance = useCallback(async (asset: string, newAmount: number) => {
     if (!user) return;
@@ -119,8 +129,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         description: "Demo wallet connected successfully",
       });
 
-      // Refresh balance after connection
-      setTimeout(() => refreshBalance(), 100);
+      // Only refresh balance on first connect, not when already connected
+      // This prevents balance resets during swaps
+      if (!balance.USDT || balance.USDT === 0) {
+        setTimeout(() => refreshBalance(), 100);
+      }
 
     } catch (error) {
       console.error("Connection failed:", error);
@@ -132,7 +145,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsConnecting(false);
     }
-  }, [isConnecting, toast, refreshBalance]);
+  }, [isConnecting, toast, refreshBalance, balance]);
 
   const disconnect = useCallback(() => {
     setUser(null);
@@ -156,13 +169,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, isConnecting, connect]);
 
-  // Refresh balance periodically
-  useEffect(() => {
-    if (user) {
-      const interval = setInterval(refreshBalance, 30000); // Every 30 seconds
-      return () => clearInterval(interval);
-    }
-  }, [user, refreshBalance]);
+  // DON'T auto-refresh balance - let user maintain local state
+  // The periodic refresh was causing balance resets in swap
+  // useEffect(() => {
+  //   if (user) {
+  //     const interval = setInterval(refreshBalance, 30000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [user, refreshBalance]);
 
   const value: WalletContextType = {
     user,

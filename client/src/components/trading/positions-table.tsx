@@ -62,11 +62,11 @@ export default function PositionsTable() {
                         {position.side}
                       </Badge>
                     </td>
-                    <td className="py-3 px-2">${position.size.toFixed(2)}</td>
-                    <td className="py-3 px-2">${position.entryPrice.toFixed(2)}</td>
-                    <td className="py-3 px-2">${position.margin.toFixed(2)}</td>
-                    <td className={`py-3 px-2 ${position.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      ${position.pnl.toFixed(2)}
+                    <td className="py-3 px-2">${Number(position.size || 0).toFixed(2)}</td>
+                    <td className="py-3 px-2">${Number(position.entryPrice || 0).toFixed(2)}</td>
+                    <td className="py-3 px-2">${Number(position.margin || 0).toFixed(2)}</td>
+                    <td className={`py-3 px-2 ${Number(position.pnl || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      ${Number(position.pnl || 0) >= 0 ? '+' : ''}${Number(position.pnl || 0).toFixed(2)}
                     </td>
                     <td className="py-3 px-2">{position.status}</td>
                     <td className="py-3 px-2">
@@ -115,8 +115,8 @@ export default function PositionsTable() {
                         {order.side}
                       </Badge>
                     </td>
-                    <td className="py-3 px-2">${order.size?.toFixed(2) || '0.00'}</td>
-                    <td className="py-3 px-2">${order.price?.toFixed(2) || '0.00'}</td>
+                    <td className="py-3 px-2">${Number(order.size || 0).toFixed(2)}</td>
+                    <td className="py-3 px-2">${Number(order.price || 0).toFixed(2)}</td>
                     <td className="py-3 px-2">{order.status}</td>
                     <td className="py-3 px-2">{new Date(order.createdAt).toLocaleDateString()}</td>
                   </tr>
@@ -157,11 +157,11 @@ export default function PositionsTable() {
                         {trade.side}
                       </Badge>
                     </td>
-                    <td className="py-3 px-2">${trade.size?.toFixed(2) || '0.00'}</td>
-                    <td className="py-3 px-2">${trade.price?.toFixed(2) || '0.00'}</td>
-                    <td className="py-3 px-2">${trade.fee?.toFixed(4) || '0.0000'}</td>
-                    <td className={`py-3 px-2 ${trade.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      ${trade.pnl?.toFixed(2) || '0.00'}
+                    <td className="py-3 px-2">${Number(trade.size || 0).toFixed(2)}</td>
+                    <td className="py-3 px-2">${Number(trade.price || 0).toFixed(2)}</td>
+                    <td className="py-3 px-2">${Number(trade.fee || 0).toFixed(4)}</td>
+                    <td className={`py-3 px-2 ${Number(trade.pnl || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      ${Number(trade.pnl || 0) >= 0 ? '+' : ''}${Number(trade.pnl || 0).toFixed(2)}
                     </td>
                     <td className="py-3 px-2">{new Date(trade.createdAt).toLocaleDateString()}</td>
                   </tr>

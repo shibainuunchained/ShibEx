@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 interface MarketData {
   symbol: string;
@@ -58,33 +58,16 @@ export function useWebSocket() {
     setIsConnected(true);
   };
 
-  // Fallback API fetch (non-blocking)
-  const fetchRealPricesInBackground = async () => {
+  // Background price fetching (disabled for demo stability)
+  const fetchRealPricesInBackground = useCallback(async () => {
     try {
-      // Try CoinCap API in background, don't block UI
-      const response = await fetch('https://api.coincap.io/v2/assets?ids=bitcoin,ethereum,shiba-inu&limit=3', {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.data && result.data.length > 0) {
-          // Update base prices from real data
-          result.data.forEach((coin: any) => {
-            const price = parseFloat(coin.priceUsd);
-            if (coin.id === "bitcoin") basePricesRef.current['BTC/USD'] = price;
-            else if (coin.id === "ethereum") basePricesRef.current['ETH/USD'] = price;
-            else if (coin.id === "shiba-inu") basePricesRef.current['SHIBA/USD'] = price;
-          });
-          console.log('✅ Updated base prices from real data');
-        }
-      }
+      console.log('📊 Background price fetch - SIMULATED for demo stability');
+      // External APIs disabled to prevent 404 errors
+      // Just log that we're running simulation
     } catch (error) {
-      // Silently fail, keep using simulated prices
-      console.log('Real price fetch failed, using simulation');
+      console.warn('⚠️ Background price fetch failed (expected in demo mode):', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Initial update

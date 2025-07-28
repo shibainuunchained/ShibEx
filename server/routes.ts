@@ -37,7 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     sendMarketData();
 
-    // Send market data updates every 30 seconds with real data
+    // Send market data updates every 10 seconds with real data
     const marketDataInterval = setInterval(async () => {
       try {
         const livePrices = await marketAPI.getLivePrices();
@@ -60,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error('Error updating market data:', error);
       }
-    }, 30000);
+    }, 10000);
 
     ws.on('close', () => {
       console.log('Client disconnected from WebSocket');

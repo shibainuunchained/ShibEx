@@ -107,7 +107,13 @@ export default function TradePage() {
             price={currentPrice} 
             change={change24h}
           />
-          <MarketStats />
+          <MarketStats 
+            symbol={selectedPair.symbol}
+            poolValue="$2.5M"
+            longOI="$1.2M"
+            shortOI="$1.3M"
+            fundingRate="0.025"
+          />
         </div>
         
         {/* Trading Form */}

@@ -7,6 +7,9 @@ interface MarketStatsProps {
 }
 
 export default function MarketStats({ symbol, poolValue, longOI, shortOI, fundingRate }: MarketStatsProps) {
+  // Safety check to prevent errors
+  const safeSymbol = symbol || "BTC/USD";
+  
   return (
     <div className="glass-card p-6 space-y-4">
       <h3 className="text-lg font-semibold mb-4">Market Stats</h3>
@@ -14,7 +17,7 @@ export default function MarketStats({ symbol, poolValue, longOI, shortOI, fundin
       <div className="space-y-3 text-sm">
         <div className="flex justify-between">
           <span className="text-shiba-text-muted">Pool</span>
-          <span>{symbol.replace("/", "-")}</span>
+          <span>{safeSymbol.replace("/", "-")}</span>
         </div>
         
         <div className="flex justify-between">

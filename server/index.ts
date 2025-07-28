@@ -61,31 +61,14 @@ app.use((req, res, next) => {
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
+  // Other ports are firewalled. Default to 10000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   
-  // Debug port environment variable
+  const port = process.env.PORT || 10000;
+  
   console.log('Environment PORT:', process.env.PORT);
-  console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('PORT')));
-  
-  // Try multiple port sources and handle Render's specific format
-  let portEnv = process.env.PORT || process.env.port || process.env.HTTP_PORT;
-  
-  // Handle Render's "(auto-assigned by Render)" format
-  if (portEnv && (portEnv.includes('auto-assigned') || portEnv.includes('Render'))) {
-    portEnv = '10000'; // Use default for Render
-  }
-  
-  let port = parseInt(portEnv || '10000', 10);
-  
-  // Fallback to 10000 if parsing fails (common Render default)
-  if (isNaN(port) || port <= 0 || port >= 65536) {
-    console.warn(`Invalid port from env: ${portEnv}, using fallback 10000`);
-    port = 10000;
-  }
-  
-  console.log('Final port:', port);
+  console.log('Using port:', port);
   
   // Use 0.0.0.0 for production environment
   const host = '0.0.0.0';

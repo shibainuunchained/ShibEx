@@ -78,14 +78,12 @@ export default function TradingForm({ symbol, price }: TradingFormProps) {
     try {
       await createPosition.mutateAsync({
         userId: "demo-user",
-        symbol,
+        market: symbol,
         side: orderType,
-        size: sizeNum,
-        entryPrice: orderMode === "LIMIT" ? parseFloat(limitPrice) || price : price,
-        leverage: currentLeverage,
-        margin: requiredMargin,
-        pnl: 0,
-        status: "OPEN" as const
+        size: sizeNum.toString(),
+        collateral: requiredMargin.toString(),
+        entryPrice: (orderMode === "LIMIT" ? parseFloat(limitPrice) || price : price).toString(),
+        leverage: currentLeverage.toString(),
       });
 
       // Refresh balance after successful trade
@@ -179,7 +177,7 @@ export default function TradingForm({ symbol, price }: TradingFormProps) {
                 value={limitPrice}
                 onChange={(e) => setLimitPrice(e.target.value)}
                 placeholder={`Current: $${price.toFixed(2)}`}
-                className="bg-shiba-darker border-shiba-border text-white"
+                className="bg-shiba-darker border-shiba-border text-white placeholder:text-gray-400"
               />
             </div>
           )}
@@ -194,7 +192,7 @@ export default function TradingForm({ symbol, price }: TradingFormProps) {
               value={size}
               onChange={(e) => setSize(e.target.value)}
               placeholder="Enter position size..."
-              className="bg-shiba-darker border-shiba-border text-white"
+              className="bg-shiba-darker border-shiba-border text-white placeholder:text-gray-400"
             />
             <div className="text-sm text-shiba-text-muted">
               Required margin: ${requiredMargin.toFixed(2)} | Available: ${usdtBalance.toFixed(2)}

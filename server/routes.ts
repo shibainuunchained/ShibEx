@@ -123,9 +123,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const position = insertPositionSchema.parse(req.body);
 
+      // Parse string values for calculations
+      const size = parseFloat(position.size);
+      const entryPrice = parseFloat(position.entryPrice);
+      const leverage = parseFloat(position.leverage);
+      const collateral = parseFloat(position.collateral);
+
       // Get user's USDT balance
       const balance = await storage.getUserBalance(position.userId, 'USDT');
-      const requiredAmount = position.size * position.entryPrice / position.leverage;
+      const requiredAmount = collateral; // Use the collateral amount calculated on frontend
 
       console.log(`Position creation - User: ${position.userId}, Required: ${requiredAmount}, Balance: ${balance}`);
 

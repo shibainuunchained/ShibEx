@@ -172,4 +172,12 @@
   .bg-shiba-card {
     background-color: var(--shiba-card);
   }
+
+  .bg-shiba-darker {
+    background-color: hsl(26, 15%, 8%);
+  }
+
+  .border-shiba-border {
+    border-color: var(--border);
+  }
 }

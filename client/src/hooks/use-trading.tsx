@@ -38,14 +38,12 @@ export function useTradingData() {
   const createPosition = useMutation({
     mutationFn: async (positionData: {
       userId: string;
-      symbol: string;
+      market: string;
       side: "LONG" | "SHORT";
-      size: number;
-      entryPrice: number;
-      leverage: number;
-      margin: number;
-      pnl: number;
-      status: "OPEN";
+      size: string;
+      collateral: string;
+      entryPrice: string;
+      leverage: string;
     }) => {
       const response = await apiRequest("POST", "/api/positions", positionData);
       if (!response.ok) {

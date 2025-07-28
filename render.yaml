@@ -1,7 +1,7 @@
 services:
   - type: web
     name: shibau-trading-platform
-    env: node
+    runtime: node
     plan: free
     buildCommand: ./build.sh
     startCommand: npm start

@@ -65,8 +65,21 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   
-  // Standard Render port configuration - defaults to 10000
-  const port = process.env.PORT || 10000;
+  // Handle Render's port assignment - convert string to number
+  let port = 10000; // Default fallback
+  
+  if (process.env.PORT) {
+    const portEnv = process.env.PORT;
+    // Check if it's the Render placeholder string
+    if (portEnv === "(auto-assigned by Render)" || portEnv.includes("auto-assigned")) {
+      port = 10000; // Use default
+    } else {
+      const parsed = parseInt(portEnv, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        port = parsed;
+      }
+    }
+  }
   
   console.log('Environment PORT:', process.env.PORT);
   console.log('Using port:', port);

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useTradingData } from "@/hooks/use-trading";
+import { useTrading } from "@/hooks/use-trading";
 
 interface Position {
   id: string;
@@ -20,10 +20,7 @@ export default function PositionsTable() {
   const [activeTab, setActiveTab] = useState("positions");
 
   // Get real trading data
-  const { usePositions, useOrders, useTrades } = useTradingData();
-  const { data: positions = [] } = usePositions("demo-user");
-  const { data: orders = [] } = useOrders("demo-user");
-  const { data: trades = [] } = useTrades("demo-user");
+  const { positions, orders, trades, closePosition } = useTrading();
 
   const handleClosePosition = (positionId: string) => {
     console.log("Closing position:", positionId);

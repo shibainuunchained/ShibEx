@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useWallet } from "@/hooks/use-wallet";
-import { useTradingData } from "@/hooks/use-trading";
+import { useTrading } from "@/hooks/use-trading";
 
 const portfolioStats = [
   {
@@ -73,12 +73,7 @@ const recentTrades = [
 
 export default function DashboardPage() {
   const { balances } = useWallet();
-  const { usePositions, useOrders, useTrades } = useTradingData();
-
-  // Get user trading data
-  const { data: positions = [] } = usePositions("demo-user");
-  const { data: orders = [] } = useOrders("demo-user");
-  const { data: trades = [] } = useTrades("demo-user");
+  const { positions, orders, trades } = useTrading();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

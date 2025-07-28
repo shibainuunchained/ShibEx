@@ -65,7 +65,8 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   
-  const port = process.env.PORT || 10000;
+  // Standard Render port configuration
+  const port = Number(process.env.PORT) || 10000;
   
   console.log('Environment PORT:', process.env.PORT);
   console.log('Using port:', port);

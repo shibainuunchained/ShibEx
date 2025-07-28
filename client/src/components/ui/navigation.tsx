@@ -35,8 +35,12 @@ export default function Navigation() {
                 className="w-6 h-6 rounded-full"
                 onError={(e) => {
                   // Fallback to emoji if SVG fails to load
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling!.style.display = 'block';
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const nextElement = target.nextElementSibling as HTMLElement;
+                  if (nextElement) {
+                    nextElement.style.display = 'block';
+                  }
                 }}
               />
               <span className="text-lg hidden">🐕</span>

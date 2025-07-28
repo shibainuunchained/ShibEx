@@ -4,6 +4,9 @@ import { TradingForm } from "@/components/trading/trading-form";
 import PositionsTable from "@/components/trading/positions-table";
 import MarketStats from "@/components/trading/market-stats";
 import { useWebSocket, getCurrentMarketPrices } from "@/hooks/use-websocket";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Available trading pairs with synchronized prices
 const availablePairs = [

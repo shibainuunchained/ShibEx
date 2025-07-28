@@ -1,93 +1,53 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { initializeDatabase } from "./storage";
+import { setupVite } from "./vite";
+import { setupRoutes } from "./routes";
+import { log } from "./vite";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+// Minimal middleware setup
+app.use((req: any, res: any, next: any) => {
+  res.json = function (bodyJson: any, ...args: any[]) {
+    return res.type("json").send(JSON.stringify(bodyJson));
   };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
   next();
 });
 
-(async () => {
-  // Initialize memory storage with sample data
-  await initializeDatabase();
-  
-  const server = await registerRoutes(app);
+app.use(express.json());
+app.use(express.static("dist"));
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+// Setup routes and Vite
+try {
+  setupRoutes(app);
+  setupVite(app);
+} catch (error) {
+  console.error("Setup error:", error);
+}
 
-    res.status(status).json({ message });
-    throw err;
+// BULLETPROOF port configuration
+const port = parseInt(process.env.PORT as string) || 10000;
+const host = '0.0.0.0';
+
+console.log('Starting server...');
+console.log('Environment PORT:', process.env.PORT);
+console.log('Using port:', port);
+console.log('Using host:', host);
+
+const server = app.listen(port, host, () => {
+  log(`🚀 Server running on http://${host}:${port}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
   });
+});
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 10000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  
-  // Handle Render's port assignment - convert string to number
-  let port = 10000; // Default fallback
-  
-  if (process.env.PORT) {
-    const portEnv = process.env.PORT;
-    // Check if it's the Render placeholder string
-    if (portEnv === "(auto-assigned by Render)" || portEnv.includes("auto-assigned")) {
-      port = 10000; // Use default
-    } else {
-      const parsed = parseInt(portEnv, 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        port = parsed;
-      }
-    }
-  }
-  
-  console.log('Environment PORT:', process.env.PORT);
-  console.log('Using port:', port);
-  
-  // Use 0.0.0.0 for production environment
-  const host = '0.0.0.0';
-    
-  server.listen(port, host, () => {
-    log(`serving on http://${host}:${port}`);
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
   });
-})();
+});

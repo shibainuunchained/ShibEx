@@ -69,9 +69,15 @@ app.use((req, res, next) => {
   console.log('Environment PORT:', process.env.PORT);
   console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('PORT')));
   
-  // Try multiple port sources common in different deployment platforms
-  const portEnv = process.env.PORT || process.env.port || process.env.HTTP_PORT || '10000';
-  let port = parseInt(portEnv, 10);
+  // Try multiple port sources and handle Render's specific format
+  let portEnv = process.env.PORT || process.env.port || process.env.HTTP_PORT;
+  
+  // Handle Render's "(auto-assigned by Render)" format
+  if (portEnv && (portEnv.includes('auto-assigned') || portEnv.includes('Render'))) {
+    portEnv = '10000'; // Use default for Render
+  }
+  
+  let port = parseInt(portEnv || '10000', 10);
   
   // Fallback to 10000 if parsing fails (common Render default)
   if (isNaN(port) || port <= 0 || port >= 65536) {

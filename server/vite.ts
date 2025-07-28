@@ -19,29 +19,64 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-export async function setupVite(app: Express, server: Server) {
+export async function setupVite(app: Express, server?: Server) {
+  const isProduction = process.env.NODE_ENV === "production";
+  
+  console.log(`🔧 Setting up Vite - Mode: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+  
+  if (isProduction) {
+    // Production: Serve built static files
+    console.log("📦 Production mode: Serving static files from dist/");
+    
+    // Serve the built HTML file for all routes
+    app.get("*", (req, res, next) => {
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
+        return next();
+      }
+      
+      try {
+        const htmlPath = path.resolve(import.meta.dirname, "..", "dist", "index.html");
+        console.log(`📄 Serving HTML from: ${htmlPath}`);
+        
+        if (fs.existsSync(htmlPath)) {
+          const html = fs.readFileSync(htmlPath, "utf-8");
+          res.status(200).set({ "Content-Type": "text/html" }).send(html);
+        } else {
+          console.error(`❌ HTML file not found: ${htmlPath}`);
+          res.status(404).send("Application not found");
+        }
+      } catch (error) {
+        console.error("💥 Error serving HTML:", error);
+        res.status(500).send("Internal server error");
+      }
+    });
+    
+    return;
+  }
+
+  // Development: Use Vite dev server
+  console.log("🚀 Development mode: Using Vite dev server");
+  
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    hmr: server ? { server } : false,
     allowedHosts: true as const,
   };
 
   const vite = await createViteServer({
     ...viteConfig,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      },
-    },
-    server: serverOptions,
+    ...serverOptions,
     appType: "custom",
   });
 
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
     const url = req.originalUrl;
 
     try {
@@ -68,23 +103,13 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(process.cwd(), "dist");
-
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
-    );
+  const staticPath = path.resolve(import.meta.dirname, "..", "dist");
+  console.log(`📁 Serving static files from: ${staticPath}`);
+  
+  if (fs.existsSync(staticPath)) {
+    app.use(express.static(staticPath));
+    console.log("✅ Static files middleware added");
+  } else {
+    console.error(`❌ Static directory not found: ${staticPath}`);
   }
-
-  // Serve static files from dist directory
-  app.use(express.static(distPath));
-
-  // Serve index.html for all non-API routes
-  app.get("*", (req, res) => {
-    // Don't serve index.html for API routes
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
 }

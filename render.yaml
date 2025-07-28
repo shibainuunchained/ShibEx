@@ -8,7 +8,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        fromService: true
     healthCheckPath: /
     autoDeploy: true

@@ -64,9 +64,24 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
   
-  // Use 0.0.0.0 for Replit environment
+  // Debug port environment variable
+  console.log('Environment PORT:', process.env.PORT);
+  console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('PORT')));
+  
+  // Try multiple port sources common in different deployment platforms
+  const portEnv = process.env.PORT || process.env.port || process.env.HTTP_PORT || '10000';
+  let port = parseInt(portEnv, 10);
+  
+  // Fallback to 10000 if parsing fails (common Render default)
+  if (isNaN(port) || port <= 0 || port >= 65536) {
+    console.warn(`Invalid port from env: ${portEnv}, using fallback 10000`);
+    port = 10000;
+  }
+  
+  console.log('Final port:', port);
+  
+  // Use 0.0.0.0 for production environment
   const host = '0.0.0.0';
     
   server.listen(port, host, () => {

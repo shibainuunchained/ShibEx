@@ -4,23 +4,43 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import TradingChart from "@/components/trading/chart";
-import TradingForm from "@/components/trading/trading-form";
+import { TradingForm } from "@/components/trading/trading-form";
 import PositionsTable from "@/components/trading/positions-table";
 import MarketStats from "@/components/trading/market-stats";
 
 const availablePairs = [
-  { symbol: "BTC/USD", icon: "₿", price: 67235.42, change: 2.34 },
-  { symbol: "ETH/USD", icon: "Ξ", price: 3567.89, change: -1.23 },
-  { symbol: "SHIBA/USD", icon: "🐕", price: 0.000022, change: 5.67 },
+  { symbol: "BTC/USD", icon: "₿", price: 107234.56, change: 2.34 },
+  { symbol: "ETH/USD", icon: "Ξ", price: 3521.89, change: -0.87 },
+  { symbol: "SHIBA/USD", icon: "🐕", price: 0.00002198, change: 4.23 },
 ];
 
 export default function TradePage() {
   const { marketData, isConnected } = useWebSocket();
   const [selectedPair, setSelectedPair] = useState(availablePairs[0]);
   
-  const currentData = marketData.find(data => data.symbol === selectedPair.symbol);
-  const currentPrice = currentData ? parseFloat(currentData.price) : selectedPair.price;
-  const change24h = currentData ? parseFloat(currentData.change24h || selectedPair.change.toString()) : selectedPair.change;
+  // Safe price extraction with fallbacks
+  const getCurrentPrice = () => {
+    try {
+      const currentData = marketData.find(data => data.symbol === selectedPair.symbol);
+      return currentData ? parseFloat(currentData.price) : selectedPair.price;
+    } catch (error) {
+      console.warn("Error getting current price:", error);
+      return selectedPair.price;
+    }
+  };
+
+  const getCurrentChange = () => {
+    try {
+      const currentData = marketData.find(data => data.symbol === selectedPair.symbol);
+      return currentData ? parseFloat(currentData.change24h || "0") : selectedPair.change;
+    } catch (error) {
+      console.warn("Error getting current change:", error);
+      return selectedPair.change;
+    }
+  };
+
+  const currentPrice = getCurrentPrice();
+  const change24h = getCurrentChange();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -48,66 +68,60 @@ export default function TradePage() {
                     >
                       <span className="text-lg">{pair.icon}</span>
                       <span>{pair.symbol}</span>
-                      <span className={`ml-auto text-sm ${pair.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {pair.change >= 0 ? '+' : ''}{pair.change}%
-                      </span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <span className="text-sm text-shiba-text-muted">[{selectedPair.symbol.replace("/", "-")}]</span>
-              {!isConnected && (
-                <Badge variant="outline" className="text-xs">
-                  Disconnected
-                </Badge>
-              )}
             </div>
-            <div>
-              <div className="text-xl font-bold">${currentPrice.toLocaleString()}</div>
-              <div className={`text-sm ${change24h >= 0 ? 'text-shiba-success' : 'text-shiba-error'}`}>
-                {change24h >= 0 ? '+' : ''}{change24h}%
-              </div>
+            
+            <div className="flex items-center space-x-1">
+              <span className="text-2xl font-bold">
+                ${currentPrice.toFixed(selectedPair.symbol.includes('SHIBA') ? 8 : 2)}
+              </span>
+              <Badge 
+                variant={change24h >= 0 ? "default" : "destructive"}
+                className={change24h >= 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+              >
+                {change24h >= 0 ? "+" : ""}{change24h.toFixed(2)}%
+              </Badge>
             </div>
           </div>
-          <div className="flex space-x-8 text-sm">
-            <div>
-              <div className="text-shiba-text-muted">24h Volume</div>
-              <div className="font-semibold">$12.4M</div>
-            </div>
-            <div>
-              <div className="text-shiba-text-muted">Open Interest</div>
-              <div className="font-semibold">$89.2M</div>
-            </div>
-            <div>
-              <div className="text-shiba-text-muted">Available Liquidity</div>
-              <div className="font-semibold">$45.8M</div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-sm text-shiba-text-muted">
+                {isConnected ? 'Live Prices' : 'Connecting...'}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Chart and Positions Section */}
+        {/* Chart Section */}
         <div className="lg:col-span-3 space-y-6">
           <TradingChart 
             symbol={selectedPair.symbol} 
             price={currentPrice} 
-            change={change24h} 
+            change={change24h}
           />
-          <PositionsTable />
+          <MarketStats />
         </div>
-
-        {/* Trading Panel */}
+        
+        {/* Trading Form */}
         <div className="space-y-6">
-          <TradingForm symbol={selectedPair.symbol} price={currentPrice} />
-          <MarketStats 
-            symbol={selectedPair.symbol}
-            poolValue="$145.2M"
-            longOI="$44.6M"
-            shortOI="$44.6M"
-            fundingRate="0.0045"
+          <TradingForm 
+            selectedPair={selectedPair.symbol}
+            currentPrice={currentPrice}
           />
         </div>
+      </div>
+
+      {/* Positions Table */}
+      <div className="mt-8">
+        <PositionsTable />
       </div>
     </div>
   );

@@ -1,212 +1,245 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import type { Position, Order, Trade, MarketData } from "@shared/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
-export function useTradingData() {
+interface Position {
+  id: string;
+  userId: string;
+  market: string;
+  type: string;
+  size: string;
+  entryPrice: string;
+  leverage: string;
+  collateral: string;
+  createdAt: string;
+}
+
+interface Trade {
+  id: string;
+  userId: string;
+  positionId: string;
+  type: string;
+  size: string;
+  price: string;
+  createdAt: string;
+}
+
+interface Order {
+  id: string;
+  userId: string;
+  market: string;
+  type: string;
+  side: string;
+  size: string;
+  price: string;
+  status: string;
+  createdAt: string;
+}
+
+interface CreatePositionData {
+  userId: string;
+  market: string;
+  type: string;
+  size: string;
+  entryPrice: string;
+  leverage: string;
+  collateral: string;
+}
+
+// Bulletproof API wrapper with error handling
+const safeApiCall = async (url: string, options: RequestInit = {}) => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // Use status text if JSON parsing fails
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error;
+  }
+};
+
+export function useTrading() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Market data query
-  const { data: marketData = [], isLoading: isLoadingMarketData } = useQuery({
-    queryKey: ["/api/market-data"],
+  // Get positions
+  const positions = useQuery<Position[]>({
+    queryKey: ["positions", "demo-user"],
+    queryFn: () => safeApiCall("/api/positions/demo-user"),
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 5000,
   });
 
-  // Positions query
-  const usePositions = (userId: string = "demo-user") => {
-    return useQuery({
-      queryKey: ["/api/positions", userId],
-      enabled: !!userId,
-    });
-  };
+  // Get trades  
+  const trades = useQuery<Trade[]>({
+    queryKey: ["trades", "demo-user"],
+    queryFn: () => safeApiCall("/api/trades/demo-user"),
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 5000,
+  });
 
-  // Orders query
-  const useOrders = (userId: string = "demo-user") => {
-    return useQuery({
-      queryKey: ["/api/orders", userId],
-      enabled: !!userId,
-    });
-  };
-
-  // Trades query
-  const useTrades = (userId: string = "demo-user") => {
-    return useQuery({
-      queryKey: ["/api/trades", userId],
-      enabled: !!userId,
-    });
-  };
+  // Get orders
+  const orders = useQuery<Order[]>({
+    queryKey: ["orders", "demo-user"],
+    queryFn: () => safeApiCall("/api/orders/demo-user"),
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 5000,
+  });
 
   // Create position mutation
   const createPosition = useMutation({
-    mutationFn: async (positionData: {
-      userId: string;
-      market: string;
-      side: "LONG" | "SHORT";
-      size: string;
-      collateral: string;
-      entryPrice: string;
-      leverage: string;
-    }) => {
-      const response = await apiRequest("POST", "/api/positions", positionData);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create position');
-      }
-      return response.json();
+    mutationFn: async (data: CreatePositionData) => {
+      return safeApiCall("/api/positions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/positions", variables.userId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/trades", variables.userId] });
+    onSuccess: (data) => {
+      // Invalidate and refetch related queries
+      queryClient.invalidateQueries({ queryKey: ["positions"] });
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      queryClient.invalidateQueries({ queryKey: ["balance"] });
+      
+      console.log("Position created successfully:", data);
+    },
+    onError: (error: any) => {
+      console.error("Failed to create position:", error);
+      
+      // Don't show toast here, let the component handle it
+      // This prevents double error messages
+    },
+    retry: 2,
+    retryDelay: 1000,
+  });
+
+  // Close position mutation
+  const closePosition = useMutation({
+    mutationFn: async (positionId: string) => {
+      return safeApiCall(`/api/positions/${positionId}/close`, {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["positions"] });
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      queryClient.invalidateQueries({ queryKey: ["balance"] });
+      
+      toast({
+        title: "Position Closed",
+        description: "Position has been closed successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Close Position",
+        description: error.message || "An error occurred while closing the position",
+        variant: "destructive",
+      });
     },
   });
 
   // Create order mutation
-  const createOrderMutation = useMutation({
-    mutationFn: async (orderData: {
-      userId: string;
-      symbol: string;
-      type: "MARKET" | "LIMIT" | "STOP_LOSS" | "TAKE_PROFIT";
-      side: "LONG" | "SHORT";
-      size: string;
-      price?: string;
-      triggerPrice?: string;
-    }) => {
-      const response = await apiRequest("POST", "/api/orders", orderData);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create order');
-      }
-      return response.json();
+  const createOrder = useMutation({
+    mutationFn: async (orderData: any) => {
+      return safeApiCall("/api/orders", {
+        method: "POST",
+        body: JSON.stringify(orderData),
+      });
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/orders", variables.userId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      
+      toast({
+        title: "Order Created",
+        description: "Your order has been placed successfully",
+      });
     },
-  });
-
-  // Close position mutation
-  const closePositionMutation = useMutation({
-    mutationFn: async ({ positionId, userId }: { positionId: string; userId: string }) => {
-      const response = await apiRequest("POST", `/api/positions/${positionId}/close`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to close position');
-      }
-      return response.json();
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/positions", variables.userId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/trades", variables.userId] });
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Create Order",
+        description: error.message || "An error occurred while creating the order",
+        variant: "destructive",
+      });
     },
   });
 
   // Cancel order mutation
-  const cancelOrderMutation = useMutation({
-    mutationFn: async ({ orderId, userId }: { orderId: string; userId: string }) => {
-      const response = await apiRequest("DELETE", `/api/orders/${orderId}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to cancel order');
-      }
-      return response.json();
+  const cancelOrder = useMutation({
+    mutationFn: async (orderId: string) => {
+      return safeApiCall(`/api/orders/${orderId}`, {
+        method: "DELETE",
+      });
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/orders", variables.userId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      
+      toast({
+        title: "Order Cancelled",
+        description: "Order has been cancelled successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Cancel Order",
+        description: error.message || "An error occurred while cancelling the order",
+        variant: "destructive",
+      });
     },
   });
 
-  // Helper functions for calculations
-  const calculateLiquidationPrice = (
-    entryPrice: number,
-    leverage: number,
-    side: "LONG" | "SHORT"
-  ) => {
-    if (side === "LONG") {
-      return entryPrice * (1 - 1 / leverage * 0.9);
-    } else {
-      return entryPrice * (1 + 1 / leverage * 0.9);
-    }
-  };
-
-  const calculatePnL = (
-    entryPrice: number,
-    currentPrice: number,
-    size: number,
-    side: "LONG" | "SHORT"
-  ) => {
-    if (side === "LONG") {
-      return ((currentPrice - entryPrice) / entryPrice) * size;
-    } else {
-      return ((entryPrice - currentPrice) / entryPrice) * size;
-    }
-  };
-
-  const calculateFees = (size: number, feeRate: number = 0.001) => {
-    return size * feeRate;
-  };
-
-  // Exchange rates for swap functionality
-  const exchangeRates = {
-    "BTC/SHIBA": 1456789,
-    "ETH/SHIBA": 4690,
-    "USDC/SHIBA": 45234,
-    "BTC/USD": 67235,
-    "ETH/USD": 3567,
-    "USDC/USD": 1,
-  };
-
-  const getExchangeRate = (fromSymbol: string, toSymbol: string) => {
-    const pair = `${fromSymbol}/${toSymbol}`;
-    return exchangeRates[pair as keyof typeof exchangeRates] || 1;
-  };
-
   return {
-    marketData,
-    isLoadingMarketData,
-    usePositions,
-    useOrders,
-    useTrades,
+    // Data
+    positions: positions.data || [],
+    trades: trades.data || [],
+    orders: orders.data || [],
+    
+    // Loading states
+    isLoadingPositions: positions.isLoading,
+    isLoadingTrades: trades.isLoading,
+    isLoadingOrders: orders.isLoading,
+    
+    // Error states  
+    positionsError: positions.error,
+    tradesError: trades.error,
+    ordersError: orders.error,
+    
+    // Mutations
     createPosition,
-    createOrder: createOrderMutation,
-    closePosition: closePositionMutation,
-    cancelOrder: cancelOrderMutation,
-    calculateLiquidationPrice,
-    calculatePnL,
-    calculateFees,
-    exchangeRates,
-    getExchangeRate,
-  };
-}
-
-// Hook for portfolio calculations
-export function usePortfolio(userId: string) {
-  const { usePositions, useTrades } = useTradingData();
-  const { data: positions = [] } = usePositions(userId);
-  const { data: trades = [] } = useTrades(userId);
-
-  const positionsArray = positions as Position[];
-  const tradesArray = trades as Trade[];
-
-  const totalPortfolioValue = positionsArray.reduce((total: number, position: Position) => {
-    const netValue = parseFloat(position.pnl || "0") + parseFloat(position.margin);
-    return total + netValue;
-  }, 0);
-
-  const totalPnL = positionsArray.reduce((total: number, position: Position) => {
-    return total + parseFloat(position.pnl || "0");
-  }, 0);
-
-  const totalVolume = tradesArray.reduce((total: number, trade: Trade) => {
-    return total + parseFloat(trade.size) * parseFloat(trade.price);
-  }, 0);
-
-  const winRate = tradesArray.length > 0 ? 
-    tradesArray.filter((trade: Trade) => parseFloat(trade.pnl || "0") > 0).length / tradesArray.length * 100 : 
-    0;
-
-  return {
-    totalPortfolioValue,
-    totalPnL,
-    totalVolume,
-    winRate,
-    positions,
-    trades,
+    closePosition,
+    createOrder,
+    cancelOrder,
+    
+    // Refetch functions
+    refetchPositions: positions.refetch,
+    refetchTrades: trades.refetch,
+    refetchOrders: orders.refetch,
   };
 }

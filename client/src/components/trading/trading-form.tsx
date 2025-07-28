@@ -73,7 +73,7 @@ export function TradingForm({ selectedPair, currentPrice }: TradingFormProps) {
       const positionData = {
         userId: "demo-user", // In real app, get from auth
         market: selectedPair,
-        type: position,
+        side: position, // Changed from 'type' to 'side' to match schema
         size: positionSize.toString(),
         entryPrice: entryPrice.toString(),
         leverage: leverageMultiplier.toString(),

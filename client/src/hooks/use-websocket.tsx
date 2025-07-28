@@ -7,11 +7,11 @@ interface MarketData {
   volume24h?: string;
 }
 
-// Shared price state across the app
+// Shared price state across the app - updated to current market prices
 let sharedBasePrices = {
-  'BTC/USD': 107234.56,
-  'ETH/USD': 3521.89,
-  'SHIBA/USD': 0.00002198
+  'BTC/USD': 98234.56,     // More current BTC price 
+  'ETH/USD': 3421.89,      // More current ETH price
+  'SHIBA/USD': 0.00002298  // More current SHIBA price
 };
 
 // Export function to get current prices for other components
@@ -19,9 +19,9 @@ export const getCurrentMarketPrices = () => ({ ...sharedBasePrices });
 
 export function useWebSocket() {
   const [marketData, setMarketData] = useState<MarketData[]>([
-    { symbol: "BTC/USD", price: "107234.56", change24h: "2.34" },
-    { symbol: "ETH/USD", price: "3521.89", change24h: "-0.87" },
-    { symbol: "SHIBA/USD", price: "0.00002198", change24h: "4.23" },
+    { symbol: "BTC/USD", price: "98234.56", change24h: "2.34" },
+    { symbol: "ETH/USD", price: "3421.89", change24h: "-0.87" },
+    { symbol: "SHIBA/USD", price: "0.00002298", change24h: "4.23" },
   ]);
   const [isConnected, setIsConnected] = useState(true);
   const priceUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -29,8 +29,8 @@ export function useWebSocket() {
 
   // Generate realistic price movements
   const generateRealisticPrice = (symbol: string, basePrice: number) => {
-    const volatility = symbol.includes('BTC') ? 0.0003 : 
-                      symbol.includes('ETH') ? 0.0005 : 0.01; // Reduced volatility for more stability
+    const volatility = symbol.includes('BTC') ? 0.0001 : 
+                      symbol.includes('ETH') ? 0.0002 : 0.005; // Much reduced volatility for closer sync
     
     const change = (Math.random() - 0.5) * volatility * 2;
     const newPrice = basePrice * (1 + change);

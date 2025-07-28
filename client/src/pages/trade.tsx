@@ -10,9 +10,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 // Available trading pairs with synchronized prices
 const availablePairs = [
-  { symbol: "BTC/USD", icon: "₿", price: 107234.56, change: 2.34 },
-  { symbol: "ETH/USD", icon: "Ξ", price: 3521.89, change: -0.87 },
-  { symbol: "SHIBA/USD", icon: "🐕", price: 0.00002198, change: 4.23 },
+  { symbol: "BTC/USD", icon: "₿", price: 98234.56, change: 2.34 },
+  { symbol: "ETH/USD", icon: "Ξ", price: 3421.89, change: -0.87 },
+  { symbol: "SHIBA/USD", icon: "🐕", price: 0.00002298, change: 4.23 },
 ];
 
 export default function TradePage() {

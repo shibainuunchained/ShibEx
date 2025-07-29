@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 // Available trading pairs with synchronized prices to CURRENT REAL market
 const availablePairs = [
   { symbol: "BTC/USD", icon: "₿", price: 118850.00, change: 2.34 }, // Real current price - matched to live rate
-  { symbol: "ETH/USD", icon: "Ξ", price: 4125.50, change: -0.87 }, // Updated proportionally
+  { symbol: "ETH/USD", icon: "Ξ", price: 3800.00, change: -0.87 }, // Real current ETH price - matched to live rate
   { symbol: "SHIBA/USD", icon: "🐕", price: 0.00002298, change: 4.23 }, // Current price
 ];
 

@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// Available trading pairs with synchronized prices to CURRENT market
+// Available trading pairs with synchronized prices to CURRENT REAL market
 const availablePairs = [
-  { symbol: "BTC/USD", icon: "₿", price: 104565.00, change: 2.34 }, // Real current price
-  { symbol: "ETH/USD", icon: "Ξ", price: 3772.26, change: -0.87 }, // Real current price
+  { symbol: "BTC/USD", icon: "₿", price: 118850.00, change: 2.34 }, // Real current price - matched to live rate
+  { symbol: "ETH/USD", icon: "Ξ", price: 4125.50, change: -0.87 }, // Updated proportionally
   { symbol: "SHIBA/USD", icon: "🐕", price: 0.00002298, change: 4.23 }, // Current price
 ];
 

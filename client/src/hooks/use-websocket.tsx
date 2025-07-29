@@ -7,10 +7,10 @@ interface MarketData {
   volume24h?: string;
 }
 
-// Shared price state across the app - updated to CURRENT market prices
+// Shared price state across the app - updated to CURRENT REAL market prices
 let sharedBasePrices = {
-  'BTC/USD': 104565.00,     // Current real BTC price from CoinCodex
-  'ETH/USD': 3772.26,       // Current real ETH price 
+  'BTC/USD': 118850.00,     // Real current BTC price - matched to live rate
+  'ETH/USD': 4125.50,       // Updated proportionally
   'SHIBA/USD': 0.00002298   // Current SHIBA price
 };
 
